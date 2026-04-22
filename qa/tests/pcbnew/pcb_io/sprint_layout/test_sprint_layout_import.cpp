@@ -76,7 +76,7 @@ BOOST_AUTO_TEST_CASE( Gpio2nescBoardLoad )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/io/sprint_layout/gpio2nesc.lay6";
 
-    std::unique_ptr<BOARD> board( m_plugin.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
     BOOST_REQUIRE( board );
     BOOST_CHECK( board->Footprints().size() > 0 );
@@ -88,7 +88,7 @@ BOOST_AUTO_TEST_CASE( ReedDoorbellBoardLoad )
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir()
                            + "/io/sprint_layout/cacazi-a8-zigbee_cr2032_1.2mm.lay6";
 
-    std::unique_ptr<BOARD> board( m_plugin.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
     BOOST_REQUIRE( board );
     BOOST_CHECK( board->Footprints().size() > 0 );
@@ -100,7 +100,7 @@ BOOST_AUTO_TEST_CASE( MdbRs232BoardLoad )
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir()
                            + "/io/sprint_layout/mdb-rs232.lay6";
 
-    std::unique_ptr<BOARD> board( m_plugin.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
     BOOST_REQUIRE( board );
     BOOST_CHECK( board->Footprints().size() > 0 );
@@ -112,7 +112,7 @@ BOOST_AUTO_TEST_CASE( LoadBoardAppendToExisting )
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/io/sprint_layout/gpio2nesc.lay6";
 
     // Load first into a fresh board
-    std::unique_ptr<BOARD> baseBoard( m_plugin.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> baseBoard = m_plugin.LoadBoard( dataPath );
 
     BOOST_REQUIRE( baseBoard );
 
@@ -123,9 +123,8 @@ BOOST_AUTO_TEST_CASE( LoadBoardAppendToExisting )
 
     // Load again, appending into the existing board
     PCB_IO_SPRINT_LAYOUT plugin2;
-    BOARD* result = plugin2.LoadBoard( dataPath, baseBoard.get() );
+    plugin2.LoadAndAppendBoard( dataPath, *baseBoard );
 
-    BOOST_CHECK_EQUAL( result, baseBoard.get() );
     BOOST_CHECK( baseBoard->Footprints().size() >= originalFootprints * 2 );
     BOOST_CHECK( baseBoard->Drawings().size() >= originalDrawings * 2 );
 }
@@ -139,7 +138,7 @@ BOOST_AUTO_TEST_CASE( BoardHasOutline )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/io/sprint_layout/gpio2nesc.lay6";
 
-    std::unique_ptr<BOARD> board( m_plugin.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
     BOOST_REQUIRE( board );
 
@@ -165,7 +164,7 @@ BOOST_AUTO_TEST_CASE( PadsInsideBoardOutline )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/io/sprint_layout/gpio2nesc.lay6";
 
-    std::unique_ptr<BOARD> board( m_plugin.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
     BOOST_REQUIRE( board );
 
@@ -226,7 +225,7 @@ BOOST_AUTO_TEST_CASE( BoardHasCopperLayers )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/io/sprint_layout/gpio2nesc.lay6";
 
-    std::unique_ptr<BOARD> board( m_plugin.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
     BOOST_REQUIRE( board );
     BOOST_CHECK( board->GetCopperLayerCount() >= 2 );
@@ -237,7 +236,7 @@ BOOST_AUTO_TEST_CASE( CachedLibraryFootprints )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/io/sprint_layout/gpio2nesc.lay6";
 
-    std::unique_ptr<BOARD> board( m_plugin.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
     BOOST_REQUIRE( board );
 
@@ -255,7 +254,7 @@ BOOST_AUTO_TEST_CASE( PadsHaveAttributes )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/io/sprint_layout/gpio2nesc.lay6";
 
-    std::unique_ptr<BOARD> board( m_plugin.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
     BOOST_REQUIRE( board );
 
@@ -287,7 +286,7 @@ BOOST_AUTO_TEST_CASE( PadPositionsHavePositiveY )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/io/sprint_layout/gpio2nesc.lay6";
 
-    std::unique_ptr<BOARD> board( m_plugin.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
     BOOST_REQUIRE( board );
 
@@ -312,7 +311,7 @@ BOOST_AUTO_TEST_CASE( DrawingsExistOnCopperAndSilk )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/io/sprint_layout/gpio2nesc.lay6";
 
-    std::unique_ptr<BOARD> board( m_plugin.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
     BOOST_REQUIRE( board );
 
@@ -365,7 +364,7 @@ BOOST_AUTO_TEST_CASE( AllTestFilesLoadWithoutCrash )
 
         BOOST_TEST_CONTEXT( "Loading " << file )
         {
-            std::unique_ptr<BOARD> board( m_plugin.LoadBoard( dataPath, nullptr ) );
+            std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
             BOOST_CHECK( board != nullptr );
         }
     }
@@ -384,7 +383,7 @@ BOOST_AUTO_TEST_CASE( MmJoy2BoardLoad )
     std::map<std::string, UTF8> props;
     props["pcb_id"] = "0";
 
-    std::unique_ptr<BOARD> board( m_plugin.LoadBoard( dataPath, nullptr, &props ) );
+    std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath, &props );
 
     BOOST_REQUIRE( board );
     BOOST_CHECK( board->Footprints().size() > 0 );
@@ -403,7 +402,7 @@ BOOST_AUTO_TEST_CASE( SmallDualRgbBoardLoad )
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir()
                            + "/io/sprint_layout/smalldualrgb-withmask.lay6";
 
-    std::unique_ptr<BOARD> board( m_plugin.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
     BOOST_REQUIRE( board );
     BOOST_CHECK( board->Footprints().size() > 0 );
@@ -415,7 +414,7 @@ BOOST_AUTO_TEST_CASE( MdbMasterRev2aBoardLoad )
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir()
                            + "/io/sprint_layout/mdb-master-rev2a.lay6";
 
-    std::unique_ptr<BOARD> board( m_plugin.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
     BOOST_REQUIRE( board );
     BOOST_CHECK( board->Footprints().size() > 0 );
@@ -432,7 +431,7 @@ BOOST_AUTO_TEST_CASE( KarpatyBpfBoardLoad )
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir()
                            + "/io/sprint_layout/karpaty-rx-pcb1-bpf-orig.lay6";
 
-    std::unique_ptr<BOARD> board( m_plugin.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
     BOOST_REQUIRE( board );
     BOOST_CHECK( board->Footprints().size() > 0 );
@@ -444,7 +443,7 @@ BOOST_AUTO_TEST_CASE( KarpatyRfAmpBoardLoad )
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir()
                            + "/io/sprint_layout/karpaty-rx-pcb2-rfamp-1st-mixer-orig.lay6";
 
-    std::unique_ptr<BOARD> board( m_plugin.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
     BOOST_REQUIRE( board );
     BOOST_CHECK( board->Footprints().size() > 0 );
@@ -456,7 +455,7 @@ BOOST_AUTO_TEST_CASE( KarpatyVfoBoardLoad )
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir()
                            + "/io/sprint_layout/karpaty-rx-pcb3-vfo-orig.lay6";
 
-    std::unique_ptr<BOARD> board( m_plugin.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
     BOOST_REQUIRE( board );
     BOOST_CHECK( board->Footprints().size() > 0 );
@@ -468,7 +467,7 @@ BOOST_AUTO_TEST_CASE( KarpatyBufferBoardLoad )
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir()
                            + "/io/sprint_layout/karpaty-rx-pcb5-buffer-freq-doubler-orig.lay6";
 
-    std::unique_ptr<BOARD> board( m_plugin.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
     BOOST_REQUIRE( board );
     BOOST_CHECK( board->Footprints().size() > 0 );
@@ -480,7 +479,7 @@ BOOST_AUTO_TEST_CASE( KarpatyMainboardBoardLoad )
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir()
                            + "/io/sprint_layout/karpaty-rx-pcb6-mainboard-orig.lay6";
 
-    std::unique_ptr<BOARD> board( m_plugin.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
     BOOST_REQUIRE( board );
     BOOST_CHECK( board->Footprints().size() > 0 );
@@ -492,7 +491,7 @@ BOOST_AUTO_TEST_CASE( KarpatyPowerSupplyBoardLoad )
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir()
                            + "/io/sprint_layout/karpaty-rx-pcb7-power-supply-orig.lay6";
 
-    std::unique_ptr<BOARD> board( m_plugin.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
     BOOST_REQUIRE( board );
     BOOST_CHECK( board->Footprints().size() > 0 );
@@ -508,7 +507,7 @@ BOOST_AUTO_TEST_CASE( Ku14194RevBBoardLoad )
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir()
                            + "/io/sprint_layout/ku14194revb.lay6";
 
-    std::unique_ptr<BOARD> board( m_plugin.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
     BOOST_REQUIRE( board );
     BOOST_CHECK( board->Footprints().size() > 0 );
@@ -520,7 +519,7 @@ BOOST_AUTO_TEST_CASE( AntennaSwitchBoardLoad )
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir()
                            + "/io/sprint_layout/pcb100x40_v5.lay6";
 
-    std::unique_ptr<BOARD> board( m_plugin.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
     BOOST_REQUIRE( board );
     BOOST_CHECK( board->Footprints().size() > 0 );
@@ -532,7 +531,7 @@ BOOST_AUTO_TEST_CASE( TfccBoardLoad )
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir()
                            + "/io/sprint_layout/tfcc.lay6";
 
-    std::unique_ptr<BOARD> board( m_plugin.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
     BOOST_REQUIRE( board );
     BOOST_CHECK( board->Footprints().size() > 0 );
@@ -548,7 +547,7 @@ BOOST_AUTO_TEST_CASE( Amiga2000BoardLoad )
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir()
                            + "/io/sprint_layout/amiga2000-remake.lay6";
 
-    std::unique_ptr<BOARD> board( m_plugin.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
     BOOST_REQUIRE( board );
 
@@ -590,7 +589,7 @@ BOOST_AUTO_TEST_CASE( AllBoardsHaveConsistentPadCoordinates )
 
         BOOST_TEST_CONTEXT( "Checking coordinate consistency in " << file )
         {
-            std::unique_ptr<BOARD> board( m_plugin.LoadBoard( dataPath, nullptr ) );
+            std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
             BOOST_REQUIRE( board );
 
@@ -654,7 +653,7 @@ BOOST_AUTO_TEST_CASE( MultiBoardSelectByIndex )
             props["pcb_id"] = std::to_string( i );
 
             PCB_IO_SPRINT_LAYOUT plugin;
-            std::unique_ptr<BOARD> board( plugin.LoadBoard( dataPath, nullptr, &props ) );
+            std::unique_ptr<BOARD> board = plugin.LoadBoard( dataPath, &props );
 
             BOOST_REQUIRE( board );
         }
@@ -683,7 +682,7 @@ BOOST_AUTO_TEST_CASE( MultiBoardCallbackInvoked )
                 return chosen;
             } );
 
-    std::unique_ptr<BOARD> board( plugin.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = plugin.LoadBoard( dataPath );
 
     BOOST_CHECK( callbackInvoked );
     BOOST_CHECK_EQUAL( optionCount, 5 );
@@ -704,7 +703,7 @@ BOOST_AUTO_TEST_CASE( MultiBoardCallbackCancelThrows )
                 return std::vector<IMPORT_PROJECT_DESC>();
             } );
 
-    BOOST_CHECK_THROW( plugin.LoadBoard( dataPath, nullptr ), IO_ERROR );
+    BOOST_CHECK_THROW( plugin.LoadBoard( dataPath ), IO_ERROR );
 }
 
 
@@ -723,7 +722,7 @@ BOOST_AUTO_TEST_CASE( SingleBoardFileSkipsCallback )
                 return aOptions;
             } );
 
-    std::unique_ptr<BOARD> board( plugin.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = plugin.LoadBoard( dataPath );
 
     BOOST_CHECK( !callbackInvoked );
     BOOST_REQUIRE( board );
@@ -742,7 +741,7 @@ BOOST_AUTO_TEST_CASE( Pic12F629SmdPadPositions )
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir()
                            + "/io/sprint_layout/12F629_SM.lay6";
 
-    std::unique_ptr<BOARD> board( m_plugin.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
     BOOST_REQUIRE( board );
 

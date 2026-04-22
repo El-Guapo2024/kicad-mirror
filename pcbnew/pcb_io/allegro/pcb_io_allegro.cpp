@@ -25,8 +25,8 @@
 #include "pcb_io_allegro.h"
 
 #include <board.h>
+#include <ki_exception.h>
 #include <reporter.h>
-#include <fstream>
 #include <io/io_utils.h>
 #include <kiplatform/io.h>
 
@@ -110,16 +110,11 @@ bool PCB_IO_ALLEGRO::CanReadLibrary( const wxString& aFileName ) const
 }
 
 
-BOARD* PCB_IO_ALLEGRO::LoadBoard( const wxString& aFileName, BOARD* aAppendToMe,
-                                  const std::map<std::string, UTF8>* aProperties, PROJECT* aProject )
+void PCB_IO_ALLEGRO::loadBoard( const wxString& aFileName, BOARD& aBoard, bool aIsNewLoad,
+                                const std::map<std::string, UTF8>* aProperties, PROJECT* aProject )
 {
     m_props = aProperties;
-    m_board = aAppendToMe ? aAppendToMe : new BOARD();
-
-    if( !aAppendToMe )
-        m_board->SetFileName( aFileName );
-
-    std::unique_ptr<BOARD> deleter( aAppendToMe ? nullptr : m_board );
+    m_board = &aBoard;
 
     std::unique_ptr<KIPLATFORM::IO::MAPPED_FILE> mappedFile;
 
@@ -136,10 +131,7 @@ BOARD* PCB_IO_ALLEGRO::LoadBoard( const wxString& aFileName, BOARD* aAppendToMe,
         THROW_IO_ERRORF( _( "File is empty: %s" ), aFileName );
 
     if( !LoadBoardFromData( mappedFile->Data(), mappedFile->Size(), *m_board ) )
-        return nullptr;
-
-    (void) deleter.release();
-    return m_board;
+        THROW_IO_ERRORF( _( "Failed to load Allegro board from file: %s" ), aFileName );
 }
 
 

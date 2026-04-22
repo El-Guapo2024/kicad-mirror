@@ -71,9 +71,6 @@ public:
     bool CanReadBoard( const wxString& aFileName ) const override;
     bool CanReadLibrary( const wxString& aFileName ) const override;
 
-    BOARD* LoadBoard( const wxString& aFileName, BOARD* aAppendToMe,
-                      const std::map<std::string, UTF8>* aProperties, PROJECT* aProject = nullptr ) override;
-
     long long GetLibraryTimestamp( const wxString& aLibraryPath ) const override;
 
     void FootprintEnumerate( wxArrayString& aFootprintNames, const wxString& aLibraryPath,
@@ -104,6 +101,10 @@ public:
      */
     static std::map<wxString, PCB_LAYER_ID> DefaultLayerMappingCallback(
             const std::vector<INPUT_LAYER_DESC>& aInputLayerDescriptionVector );
+
+protected:
+    void loadBoard( const wxString& aFileName, BOARD& aBoard, bool aIsNewLoad,
+                    const std::map<std::string, UTF8>* aProperties, PROJECT* aProject = nullptr ) override;
 
 private:
     struct ALTIUM_FILE_CACHE

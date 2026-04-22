@@ -2174,7 +2174,7 @@ int PCB_CONTROL::AppendBoard( PCB_IO& pi, const wxString& fileName, DESIGN_BLOCK
         WX_PROGRESS_REPORTER progressReporter( editFrame, _( "Load PCB" ), 1, PR_CAN_ABORT );
 
         pi.SetProgressReporter( &progressReporter );
-        pi.LoadBoard( fileName, brd, &props, nullptr );
+        pi.LoadAndAppendBoard( fileName, *brd, &props, nullptr );
     }
     catch( const IO_ERROR& ioe )
     {

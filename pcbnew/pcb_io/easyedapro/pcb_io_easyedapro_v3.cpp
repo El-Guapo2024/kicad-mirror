@@ -213,15 +213,11 @@ std::unique_ptr<FOOTPRINT> PCB_IO_EASYEDAPRO_V3::FootprintLoad( const wxString& 
 }
 
 
-BOARD* PCB_IO_EASYEDAPRO_V3::LoadBoard( const wxString& aFileName, BOARD* aAppendToMe,
-                                        const std::map<std::string, UTF8>* aProperties, PROJECT* aProject )
+void PCB_IO_EASYEDAPRO_V3::loadBoard( const wxString& aFileName, BOARD& aBoard, bool aIsNewLoad,
+                                      const std::map<std::string, UTF8>* aProperties, PROJECT* aProject )
 {
     m_props = aProperties;
-
-    m_board = aAppendToMe ? aAppendToMe : new BOARD();
-
-    if( !aAppendToMe )
-        m_board->SetFileName( aFileName );
+    m_board = &aBoard;
 
     FONTCONFIG_REPORTER_SCOPE fontconfigScope( &LOAD_INFO_REPORTER::GetInstance() );
 
@@ -267,7 +263,7 @@ BOARD* PCB_IO_EASYEDAPRO_V3::LoadBoard( const wxString& aFileName, BOARD* aAppen
     }
 
     if( pcbToLoad.empty() )
-        return nullptr;
+        THROW_IO_ERROR( _( "No PCB was found in the project to import." ) );
 
     PCB_IO_EASYEDAPRO_V3_PARSER parser( nullptr, nullptr );
 
@@ -323,6 +319,4 @@ BOARD* PCB_IO_EASYEDAPRO_V3::LoadBoard( const wxString& aFileName, BOARD* aAppen
         Report( wxString::Format( _( "EasyEDA (JLCEDA) Pro v3 import skipped %d unsupported object(s)." ),
                                   adapter.GetSkippedCount() ) , RPT_SEVERITY_WARNING );
     }
-
-    return m_board;
 }

@@ -171,7 +171,8 @@ public:
     bool ParseMacroFile( const wxString& aFileName );
 
     // Create a BOARD from BOARD_DATA at the given index, and populate the provided footprint map with any footprints found in the file.
-    BOARD* CreateBoard( std::map<wxString, std::unique_ptr<FOOTPRINT>>& aFootprintMap, size_t aBoardIndex = 0 );
+    bool CreateBoard( BOARD& aBoard, std::map<wxString, std::unique_ptr<FOOTPRINT>>& aFootprintMap,
+                      size_t aBoardIndex = 0 );
 
     // Create a single FOOTPRINT from the board at index 0
     std::unique_ptr<FOOTPRINT> CreateFootprint();

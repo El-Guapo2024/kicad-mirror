@@ -118,9 +118,9 @@ BOOST_AUTO_TEST_CASE( CadstarRevision7FormatImport )
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "plugins/cadstar/route_offset/";
     wxString    filePath = dataPath + "revision7_format_no_routewidth.cpa";
 
-    BOARD* board = nullptr;
+    std::unique_ptr<BOARD> board;
 
-    BOOST_CHECK_NO_THROW( board = cstarPlugin.LoadBoard( filePath, nullptr, nullptr, nullptr ) );
+    BOOST_CHECK_NO_THROW( board = cstarPlugin.LoadBoard( filePath ) );
 
     BOOST_REQUIRE( board != nullptr );
 
@@ -149,8 +149,6 @@ BOOST_AUTO_TEST_CASE( CadstarRevision7FormatImport )
 
     // At least one track must take the route-code-derived width, proving the fallback was used
     BOOST_CHECK( foundRouteCodeWidth );
-
-    delete board;
 }
 
 

@@ -392,7 +392,7 @@ void DIALOG_BOARD_SETUP::onAuxiliaryAction( wxCommandEvent& aEvent )
 
         pi->SetProgressReporter( &progressReporter );
 
-        otherBoard.reset( pi->LoadBoard( boardFn.GetFullPath(), nullptr ) );
+        otherBoard = pi->LoadBoard( boardFn.GetFullPath() );
 
         if( importDlg.m_LayersOpt->GetValue() )
         {

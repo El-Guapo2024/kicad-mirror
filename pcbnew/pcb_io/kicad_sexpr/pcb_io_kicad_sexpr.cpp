@@ -3516,9 +3516,8 @@ PCB_IO_KICAD_SEXPR::~PCB_IO_KICAD_SEXPR()
 }
 
 
-BOARD* PCB_IO_KICAD_SEXPR::LoadBoard( const wxString& aFileName, BOARD* aAppendToMe,
-                                      const std::map<std::string, UTF8>* aProperties,
-                                      PROJECT* aProject )
+void PCB_IO_KICAD_SEXPR::loadBoard( const wxString& aFileName, BOARD& aBoard, bool aIsNewLoad,
+                                    const std::map<std::string, UTF8>* aProperties, PROJECT* aProject )
 {
     FILE_LINE_READER reader( aFileName );
 
@@ -3540,50 +3539,44 @@ BOARD* PCB_IO_KICAD_SEXPR::LoadBoard( const wxString& aFileName, BOARD* aAppendT
         reader.Rewind();
     }
 
-    BOARD* board = DoLoad( reader, aAppendToMe, aProperties, m_progressReporter, lineCount );
-
-    // Give the filename to the board if it's new
-    if( !aAppendToMe )
-        board->SetFileName( aFileName );
-
-    return board;
+    DoLoad( reader, aBoard, aIsNewLoad, aProperties, m_progressReporter, lineCount );
 }
 
 
-BOARD* PCB_IO_KICAD_SEXPR::DoLoad( LINE_READER& aReader, BOARD* aAppendToMe,
-                                   const std::map<std::string, UTF8>* aProperties,
-                                   PROGRESS_REPORTER* aProgressReporter, unsigned aLineCount)
+void PCB_IO_KICAD_SEXPR::DoLoad( LINE_READER& aReader, BOARD& aBoard, bool aIsNewLoad,
+                                 const std::map<std::string, UTF8>* aProperties, PROGRESS_REPORTER* aProgressReporter,
+                                 unsigned aLineCount )
 {
     init( aProperties );
 
     bool preserveDestinationStackup =
             aProperties && aProperties->contains( PCB_IO_LOAD_PROPERTIES::APPEND_PRESERVE_DESTINATION_STACKUP );
 
-    PCB_IO_KICAD_SEXPR_PARSER parser( &aReader, aAppendToMe, m_queryUserCallback, aProgressReporter, aLineCount,
-                                      preserveDestinationStackup );
+    PCB_IO_KICAD_SEXPR_PARSER parser( &aReader, &aBoard, m_queryUserCallback, aProgressReporter, aLineCount,
+                                      preserveDestinationStackup, !aIsNewLoad );
 
     parser.SetLayerMappingHandler( m_layer_mapping_handler );
 
     std::set<BOARD_ITEM*>   itemsBefore;
     std::set<NETINFO_ITEM*> netsBefore;
 
-    if( aAppendToMe )
+    if( !aIsNewLoad )
     {
-        for( BOARD_ITEM* item : aAppendToMe->GetItemSet() )
+        for( BOARD_ITEM* item : aBoard.GetItemSet() )
             itemsBefore.insert( item );
 
-        for( NETINFO_ITEM* net : aAppendToMe->GetNetInfo() )
+        for( NETINFO_ITEM* net : aBoard.GetNetInfo() )
             netsBefore.insert( net );
     }
 
     auto revertPartialAppend = [&]()
     {
-        if( !aAppendToMe )
+        if( aIsNewLoad )
             return;
 
         std::vector<BOARD_ITEM*> addedItems;
 
-        for( BOARD_ITEM* item : aAppendToMe->GetItemSet() )
+        for( BOARD_ITEM* item : aBoard.GetItemSet() )
         {
             if( !itemsBefore.contains( item ) )
                 addedItems.push_back( item );
@@ -3592,14 +3585,14 @@ BOARD* PCB_IO_KICAD_SEXPR::DoLoad( LINE_READER& aReader, BOARD* aAppendToMe,
         // Remove everything before deleting anything, group member back pointers
         // must be unlinked while their groups are still alive
         for( BOARD_ITEM* item : addedItems )
-            aAppendToMe->Remove( item );
+            aBoard.Remove( item );
 
         for( BOARD_ITEM* item : addedItems )
             delete item;
 
         std::vector<NETINFO_ITEM*> addedNets;
 
-        for( NETINFO_ITEM* net : aAppendToMe->GetNetInfo() )
+        for( NETINFO_ITEM* net : aBoard.GetNetInfo() )
         {
             if( !netsBefore.contains( net ) )
                 addedNets.push_back( net );
@@ -3607,12 +3600,12 @@ BOARD* PCB_IO_KICAD_SEXPR::DoLoad( LINE_READER& aReader, BOARD* aAppendToMe,
 
         for( NETINFO_ITEM* net : addedNets )
         {
-            aAppendToMe->Remove( net );
+            aBoard.Remove( net );
             delete net;
         }
     };
 
-    BOARD* board;
+    BOARD* board = nullptr;
 
     try
     {
@@ -3640,7 +3633,7 @@ BOARD* PCB_IO_KICAD_SEXPR::DoLoad( LINE_READER& aReader, BOARD* aAppendToMe,
         throw;
     }
 
-    if( !board )
+    if( board != &aBoard )
     {
         // The parser loaded something that was valid, but wasn't a board.
         THROW_PARSE_ERROR( _( "This file does not contain a PCB." ), parser.CurSource(),
@@ -3650,8 +3643,6 @@ BOARD* PCB_IO_KICAD_SEXPR::DoLoad( LINE_READER& aReader, BOARD* aAppendToMe,
     // Report any non-fatal parse warnings to the load info reporter
     for( const wxString& warning : parser.GetParseWarnings() )
         LOAD_INFO_REPORTER::GetInstance().Report( warning, RPT_SEVERITY_WARNING );
-
-    return board;
 }
 
 

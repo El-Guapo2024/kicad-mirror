@@ -74,9 +74,7 @@ BOOST_AUTO_TEST_CASE( Issue19775_ZoneLayerWildcards )
 
     BOOST_TEST_CONTEXT( "Zone layers with wildcards" )
     {
-        std::unique_ptr<BOARD> testBoard = std::make_unique<BOARD>();
-
-        kicadPlugin.LoadBoard( dataPath + "LayerWildcard.kicad_pcb", testBoard.get() );
+        std::unique_ptr<BOARD> testBoard = kicadPlugin.LoadBoard( dataPath + "LayerWildcard.kicad_pcb" );
 
         // One zone in the file
         BOOST_CHECK( testBoard->Zones().size() == 1 );
@@ -95,14 +93,12 @@ BOOST_AUTO_TEST_CASE( Issue19775_ZoneLayerWildcards )
 
         // Load and save the board from above to test how we write the zones into it
         {
-            std::unique_ptr<BOARD> testBoard = std::make_unique<BOARD>();
-            kicadPlugin.LoadBoard( dataPath + "LayerEnumerate.kicad_pcb", testBoard.get() );
+            std::unique_ptr<BOARD> testBoard = kicadPlugin.LoadBoard( dataPath + "LayerEnumerate.kicad_pcb" );
             kicadPlugin.SaveBoard( tmpBoard.string(), testBoard.get() );
         }
 
         // Read the new board
-        std::unique_ptr<BOARD> testBoard = std::make_unique<BOARD>();
-        kicadPlugin.LoadBoard( tmpBoard.string(), testBoard.get() );
+        std::unique_ptr<BOARD> testBoard = kicadPlugin.LoadBoard( tmpBoard.string() );
 
         // One zone in the file
         BOOST_CHECK( testBoard->Zones().size() == 1 );
@@ -130,9 +126,7 @@ BOOST_AUTO_TEST_CASE( Issue23125_EmptyZoneDiscarded )
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir()
                            + "plugins/kicad_sexpr/Issue23125_EmptyZone/";
 
-    std::unique_ptr<BOARD> testBoard = std::make_unique<BOARD>();
-
-    kicadPlugin.LoadBoard( dataPath + "EmptyZone.kicad_pcb", testBoard.get() );
+    std::unique_ptr<BOARD> testBoard = kicadPlugin.LoadBoard( dataPath + "EmptyZone.kicad_pcb" );
 
     // The file contains 3 zones: 1 valid (with polygon) and 2 empty (no polygon).
     // The 2 empty zones should have been discarded during loading.
@@ -175,10 +169,10 @@ BOOST_AUTO_TEST_CASE( CoincidentDrawingsSurviveSave )
 
     kicadPlugin.SaveBoard( path, &board );
 
-    BOARD reloaded;
-    kicadPlugin.LoadBoard( path, &reloaded );
+    std::unique_ptr<BOARD> reloaded = kicadPlugin.LoadBoard( path );
 
-    BOOST_CHECK_EQUAL( reloaded.Drawings().size(), 2u );
+    BOOST_REQUIRE( reloaded != nullptr );
+    BOOST_CHECK_EQUAL( reloaded->Drawings().size(), 2u );
 
     std::filesystem::remove( path.ToStdString() );
 }
@@ -189,9 +183,7 @@ BOOST_AUTO_TEST_CASE( ScientificNotationLoading )
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir()
                            + "plugins/kicad_sexpr/";
 
-    std::unique_ptr<BOARD> testBoard = std::make_unique<BOARD>();
-
-    kicadPlugin.LoadBoard( dataPath + "ScientificNotation.kicad_pcb", testBoard.get() );
+    std::unique_ptr<BOARD> testBoard = kicadPlugin.LoadBoard( dataPath + "ScientificNotation.kicad_pcb" );
 
     // The file contains 1 arc with scientific notation in its coordinates
     BOOST_CHECK_EQUAL( testBoard->Drawings().size(), 1 );
@@ -216,10 +208,9 @@ BOOST_AUTO_TEST_CASE( Issue23625_CorruptedStackupCapped )
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir()
                            + "plugins/kicad_sexpr/Issue23625_CorruptedStackup/";
 
-    std::unique_ptr<BOARD> testBoard = std::make_unique<BOARD>();
+    std::unique_ptr<BOARD> testBoard;
 
-    BOOST_CHECK_NO_THROW( kicadPlugin.LoadBoard( dataPath + "corrupted_stackup.kicad_pcb",
-                                                 testBoard.get() ) );
+    BOOST_CHECK_NO_THROW( testBoard = kicadPlugin.LoadBoard( dataPath + "corrupted_stackup.kicad_pcb" ) );
 
     const BOARD_STACKUP& stackup =
             testBoard->GetDesignSettings().GetStackupDescriptor();
@@ -244,10 +235,9 @@ BOOST_AUTO_TEST_CASE( Issue24133_DuplicatedStackupNotInflated )
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir()
                            + "plugins/kicad_sexpr/Issue24133_DuplicatedStackup/";
 
-    std::unique_ptr<BOARD> testBoard = std::make_unique<BOARD>();
+    std::unique_ptr<BOARD> testBoard;
 
-    BOOST_CHECK_NO_THROW( kicadPlugin.LoadBoard( dataPath + "duplicated_stackup.kicad_pcb",
-                                                 testBoard.get() ) );
+    BOOST_CHECK_NO_THROW( testBoard = kicadPlugin.LoadBoard( dataPath + "duplicated_stackup.kicad_pcb" ) );
 
     const BOARD_STACKUP& stackup = testBoard->GetDesignSettings().GetStackupDescriptor();
 
@@ -310,9 +300,7 @@ BOOST_AUTO_TEST_CASE( Issue23752_AppendBoardPreservesStackupAndGrowsToSixCopperL
         return nullptr;
     };
 
-    std::unique_ptr<BOARD> testBoard = std::make_unique<BOARD>();
-
-    kicadPlugin.LoadBoard( destinationPath, testBoard.get() );
+    std::unique_ptr<BOARD> testBoard = kicadPlugin.LoadBoard( destinationPath );
 
     const BOARD_STACKUP&      initialStackup = testBoard->GetDesignSettings().GetStackupDescriptor();
     const BOARD_STACKUP_ITEM* initialFirstDielectric = findFirstDielectric( initialStackup );
@@ -327,7 +315,7 @@ BOOST_AUTO_TEST_CASE( Issue23752_AppendBoardPreservesStackupAndGrowsToSixCopperL
     const wxString initialFirstDielectricMaterial = initialFirstDielectric->GetMaterial();
     const int      initialFirstDielectricThickness = initialFirstDielectric->GetThickness();
 
-    kicadPlugin.LoadBoard( sourcePath, testBoard.get(), &props );
+    kicadPlugin.LoadAndAppendBoard( sourcePath, *testBoard, &props );
 
     const int appendedCopperLayerCount = testBoard->GetCopperLayerCount();
 
@@ -370,16 +358,14 @@ BOOST_AUTO_TEST_CASE( Issue24642_AppendBoardPreservesDestinationLayerNames )
     std::map<std::string, UTF8> props;
     props[PCB_IO_LOAD_PROPERTIES::APPEND_PRESERVE_DESTINATION_STACKUP] = "";
 
-    std::unique_ptr<BOARD> testBoard = std::make_unique<BOARD>();
-
-    kicadPlugin.LoadBoard( destinationPath, testBoard.get() );
+    std::unique_ptr<BOARD> testBoard = kicadPlugin.LoadBoard( destinationPath );
 
     BOOST_REQUIRE_EQUAL( testBoard->GetLayerName( F_Cu ), wxS( "Top_layer" ) );
     BOOST_REQUIRE_EQUAL( testBoard->GetLayerName( In1_Cu ), wxS( "GND_layer" ) );
     BOOST_REQUIRE_EQUAL( testBoard->GetLayerName( In2_Cu ), wxS( "VDD_layer" ) );
     BOOST_REQUIRE_EQUAL( testBoard->GetLayerName( B_Cu ), wxS( "Bottom_layer" ) );
 
-    kicadPlugin.LoadBoard( sourcePath, testBoard.get(), &props );
+    kicadPlugin.LoadAndAppendBoard( sourcePath, *testBoard, &props );
 
     // The destination layer names must survive the append
     BOOST_CHECK_EQUAL( testBoard->GetLayerName( F_Cu ), wxS( "Top_layer" ) );
@@ -441,7 +427,8 @@ BOOST_AUTO_TEST_CASE( Issue24642_AppendBoardRemapsLayersViaHandler )
             } );
 
     std::unique_ptr<BOARD> identityBoard = std::make_unique<BOARD>();
-    kicadPlugin.LoadBoard( sourcePath, identityBoard.get(), &props );
+
+    kicadPlugin.LoadAndAppendBoard( sourcePath, *identityBoard, &props );
 
     // The dialog must see the source board's own layer names, not the canonical defaults
     BOOST_CHECK( std::find( seenNames.begin(), seenNames.end(), in1Name ) != seenNames.end() );
@@ -460,7 +447,8 @@ BOOST_AUTO_TEST_CASE( Issue24642_AppendBoardRemapsLayersViaHandler )
             } );
 
     std::unique_ptr<BOARD> swapBoard = std::make_unique<BOARD>();
-    kicadPlugin.LoadBoard( sourcePath, swapBoard.get(), &props );
+
+    kicadPlugin.LoadAndAppendBoard( sourcePath, *swapBoard, &props );
 
     const int swIn1 = countTracksOn( swapBoard.get(), In1_Cu );
     const int swIn2 = countTracksOn( swapBoard.get(), In2_Cu );
@@ -495,18 +483,20 @@ BOOST_AUTO_TEST_CASE( Issue24642_AppendBoardPromptsOnlyOnNameMismatch )
             } );
 
     // Appending onto a board with identical layer names must not prompt
-    std::unique_ptr<BOARD> matchBoard = std::make_unique<BOARD>();
-    kicadPlugin.LoadBoard( standardNames, matchBoard.get() );
-    handlerCalled = false;
-    kicadPlugin.LoadBoard( standardNames, matchBoard.get(), &props );
-    BOOST_CHECK( !handlerCalled );
+    {
+        std::unique_ptr<BOARD> matchBoard = kicadPlugin.LoadBoard( standardNames );
+        handlerCalled = false;
+        kicadPlugin.LoadAndAppendBoard( standardNames, *matchBoard, &props );
+        BOOST_CHECK( !handlerCalled );
+    }
 
     // Appending a board with differently-named layers must prompt
-    std::unique_ptr<BOARD> mismatchBoard = std::make_unique<BOARD>();
-    kicadPlugin.LoadBoard( standardNames, mismatchBoard.get() );
-    handlerCalled = false;
-    kicadPlugin.LoadBoard( customNames, mismatchBoard.get(), &props );
-    BOOST_CHECK( handlerCalled );
+    {
+        std::unique_ptr<BOARD> mismatchBoard = kicadPlugin.LoadBoard( standardNames );
+        handlerCalled = false;
+        kicadPlugin.LoadAndAppendBoard( customNames, *mismatchBoard, &props );
+        BOOST_CHECK( handlerCalled );
+    }
 }
 
 
@@ -666,9 +656,8 @@ BOOST_AUTO_TEST_CASE( CopperThievingZone_RoundTrip )
     PCB_IO_KICAD_SEXPR writer;
     writer.SaveBoard( tmpPath.string(), writeBoard.get() );
 
-    std::unique_ptr<BOARD> readBoard = std::make_unique<BOARD>();
-    PCB_IO_KICAD_SEXPR    reader;
-    reader.LoadBoard( tmpPath.string(), readBoard.get() );
+    PCB_IO_KICAD_SEXPR     reader;
+    std::unique_ptr<BOARD> readBoard = reader.LoadBoard( tmpPath.string() );
 
     BOOST_REQUIRE_EQUAL( readBoard->Zones().size(), 1u );
 
@@ -727,9 +716,8 @@ BOOST_AUTO_TEST_CASE( CopperThievingZone_AllPatternsRoundTrip )
             PCB_IO_KICAD_SEXPR writer;
             writer.SaveBoard( tmpPath.string(), writeBoard.get() );
 
-            std::unique_ptr<BOARD> readBoard = std::make_unique<BOARD>();
-            PCB_IO_KICAD_SEXPR    reader;
-            reader.LoadBoard( tmpPath.string(), readBoard.get() );
+            PCB_IO_KICAD_SEXPR     reader;
+            std::unique_ptr<BOARD> readBoard = reader.LoadBoard( tmpPath.string() );
 
             BOOST_REQUIRE_EQUAL( readBoard->Zones().size(), 1u );
             BOOST_CHECK( readBoard->Zones()[0]->GetThievingSettings().pattern == pattern );
@@ -766,9 +754,8 @@ BOOST_AUTO_TEST_CASE( CopperThievingZone_RejectedInOldFileVersion )
         << ")";
     out.close();
 
-    std::unique_ptr<BOARD> readBoard = std::make_unique<BOARD>();
-    PCB_IO_KICAD_SEXPR    reader;
-    BOOST_CHECK_THROW( reader.LoadBoard( tmpPath.string(), readBoard.get() ), IO_ERROR );
+    PCB_IO_KICAD_SEXPR reader;
+    BOOST_REQUIRE_THROW( reader.LoadBoard( tmpPath.string() ), IO_ERROR );
 
     std::filesystem::remove( tmpPath );
 }
@@ -786,9 +773,9 @@ BOOST_AUTO_TEST_CASE( MalformedDimensionTextThrowsCleanly )
         << "   (gr_text \"1 mm\" (at broken))))";
     out.close();
 
-    std::unique_ptr<BOARD> readBoard = std::make_unique<BOARD>();
-    PCB_IO_KICAD_SEXPR     reader;
-    BOOST_CHECK_THROW( reader.LoadBoard( tmpPath.string(), readBoard.get() ), IO_ERROR );
+    PCB_IO_KICAD_SEXPR reader;
+
+    BOOST_CHECK_THROW( reader.LoadBoard( tmpPath.string() ), IO_ERROR );
 }
 
 
@@ -819,9 +806,8 @@ BOOST_AUTO_TEST_CASE( CopperThievingZone_RejectsMalformedGeometry )
         << ")";
     out.close();
 
-    std::unique_ptr<BOARD> readBoard = std::make_unique<BOARD>();
-    PCB_IO_KICAD_SEXPR    reader;
-    reader.LoadBoard( tmpPath.string(), readBoard.get() );
+    PCB_IO_KICAD_SEXPR     reader;
+    std::unique_ptr<BOARD> readBoard = reader.LoadBoard( tmpPath.string() );
 
     BOOST_REQUIRE_EQUAL( readBoard->Zones().size(), 1u );
 
@@ -881,7 +867,7 @@ BOOST_AUTO_TEST_CASE( Issue24955_AppendDoesNotInheritSessionZoneDefaults )
     settings.m_Locked = true;
     board->GetDesignSettings().SetDefaultZoneSettings( settings );
 
-    kicadPlugin.LoadBoard( tmpPath.string(), board.get() );
+    kicadPlugin.LoadAndAppendBoard( tmpPath.string(), *board );
 
     BOOST_REQUIRE_EQUAL( board->Zones().size(), 2u );
 
@@ -1006,7 +992,7 @@ BOOST_AUTO_TEST_CASE( Issue24911_CancelledAppendLeavesBoardUntouched )
     CANCEL_AT_LINE_READER reader( text, lineCount / 2, &cancelRequested );
     CANCELLING_REPORTER   reporter( &cancelRequested );
 
-    BOOST_CHECK_THROW( kicadPlugin.DoLoad( reader, dest.get(), nullptr, &reporter, lineCount ), IO_ERROR );
+    BOOST_CHECK_THROW( kicadPlugin.DoLoad( reader, *dest, false, nullptr, &reporter, lineCount ), IO_ERROR );
     BOOST_CHECK( cancelRequested );
 
     BOOST_CHECK_EQUAL( dest->Tracks().size(), tracksBefore );

@@ -22,6 +22,7 @@
 #include <wx/uri.h>
 
 #include <config.h>
+#include <board.h>
 #include <footprint.h>
 #include <kiway_player.h>
 #include <wildcards_and_files_ext.h>
@@ -190,16 +191,16 @@ PCB_IO_MGR::PCB_FILE_T PCB_IO_MGR::GuessPluginTypeFromLibPath( const wxString& a
 }
 
 
-BOARD* PCB_IO_MGR::Load( PCB_FILE_T aFileType, const wxString& aFileName, BOARD* aAppendToMe,
-                     const std::map<std::string, UTF8>* aProperties, PROJECT* aProject,
-                     PROGRESS_REPORTER* aProgressReporter )
+std::unique_ptr<BOARD> PCB_IO_MGR::Load( PCB_FILE_T aFileType, const wxString& aFileName,
+                                         const std::map<std::string, UTF8>* aProperties, PROJECT* aProject,
+                                         PROGRESS_REPORTER* aProgressReporter )
 {
     IO_RELEASER<PCB_IO> pi( FindPlugin( aFileType ) );
 
     if( pi )  // test pi->plugin
     {
         pi->SetProgressReporter( aProgressReporter );
-        return pi->LoadBoard( aFileName, aAppendToMe, aProperties, aProject );
+        return pi->LoadBoard( aFileName, aProperties, aProject );
     }
 
     THROW_IO_ERROR( wxString::Format( FMT_NOTFOUND, ShowType( aFileType ).GetData() ) );

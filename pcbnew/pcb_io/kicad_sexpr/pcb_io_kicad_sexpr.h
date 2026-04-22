@@ -377,16 +377,11 @@ public:
     void FormatBoardToFormatter( OUTPUTFORMATTER* aOut, BOARD* aBoard,
                                  const std::map<std::string, UTF8>* aProperties = nullptr );
 
-    BOARD* LoadBoard( const wxString& aFileName, BOARD* aAppendToMe,
-                      const std::map<std::string, UTF8>* aProperties = nullptr,
-                      PROJECT* aProject = nullptr ) override;
+    void DoLoad( LINE_READER& aReader, BOARD& aBoard, bool aIsNewLoad, const std::map<std::string, UTF8>* aProperties,
+                 PROGRESS_REPORTER* aProgressReporter, unsigned aLineCount );
 
-    BOARD* DoLoad( LINE_READER& aReader, BOARD* aAppendToMe, const std::map<std::string,
-                   UTF8>* aProperties, PROGRESS_REPORTER* aProgressReporter, unsigned aLineCount );
-
-    void FootprintEnumerate( wxArrayString& aFootprintNames, const wxString& aLibraryPath,
-                             bool aBestEfforts, const std::map<std::string,
-                             UTF8>* aProperties = nullptr ) override;
+    void FootprintEnumerate( wxArrayString& aFootprintNames, const wxString& aLibraryPath, bool aBestEfforts,
+                             const std::map<std::string, UTF8>* aProperties = nullptr ) override;
 
     const FOOTPRINT* GetEnumeratedFootprint( const wxString& aLibraryPath,
                                              const wxString& aFootprintName,
@@ -450,11 +445,13 @@ public:
     BOARD_ITEM* Parse( const wxString& aClipboardSourceInput );
 
 protected:
+    void loadBoard( const wxString& aFileName, BOARD& aBoard, bool aIsNewLoad,
+                    const std::map<std::string, UTF8>* aProperties = nullptr, PROJECT* aProject = nullptr ) override;
+
     void validateCache( const wxString& aLibraryPath, bool checkModified = true );
 
     const FOOTPRINT* getFootprint( const wxString& aLibraryPath, const wxString& aFootprintName,
-                                   const std::map<std::string, UTF8>* aProperties,
-                                   bool checkModified );
+                                   const std::map<std::string, UTF8>* aProperties, bool checkModified );
 
     void init( const std::map<std::string, UTF8>* aProperties );
 

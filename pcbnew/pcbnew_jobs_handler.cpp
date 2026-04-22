@@ -3503,9 +3503,9 @@ int PCBNEW_JOBS_HANDLER::JobImport( JOB* aJob )
         }
     } transientProjectGuard{ mgr, projectPtr, createdTransientProject };
 
-    BOARD*                board = nullptr;
-    wxString              formatName = PCB_IO_MGR::ShowType( fileType );
-    std::vector<wxString> warnings;
+    std::unique_ptr<BOARD> board;
+    wxString               formatName = PCB_IO_MGR::ShowType( fileType );
+    std::vector<wxString>  warnings;
 
     // Real source-to-KiCad layer decisions, captured by our mapping callback so the report can
     // show them and so explicit overrides can be validated.
@@ -3604,7 +3604,7 @@ int PCBNEW_JOBS_HANDLER::JobImport( JOB* aJob )
                 wxString::Format( _( "Importing '%s' using %s format...\n" ), job->m_inputFile, formatName ),
                 RPT_SEVERITY_INFO );
 
-        board = pi->LoadBoard( job->m_inputFile, nullptr, nullptr, nullptr );
+        board = pi->LoadBoard( job->m_inputFile );
 
         if( !board )
         {
@@ -3637,7 +3637,7 @@ int PCBNEW_JOBS_HANDLER::JobImport( JOB* aJob )
 
         // Save as KiCad format
         IO_RELEASER<PCB_IO> kicadPlugin( PCB_IO_MGR::FindPlugin( PCB_IO_MGR::KICAD_SEXP ) );
-        kicadPlugin->SaveBoard( outputPath, board );
+        kicadPlugin->SaveBoard( outputPath, board.get() );
 
         m_reporter->Report( wxString::Format( _( "Successfully saved imported board to '%s'\n" ), outputPath ),
                             RPT_SEVERITY_INFO );
@@ -3712,14 +3712,10 @@ int PCBNEW_JOBS_HANDLER::JobImport( JOB* aJob )
             for( const wxString& warning : warnings )
                 m_reporter->Report( warning + wxS( "\n" ), RPT_SEVERITY_WARNING );
         }
-
-        delete board;
     }
     catch( const IO_ERROR& ioe )
     {
         m_reporter->Report( wxString::Format( _( "Error during import: %s\n" ), ioe.What() ), RPT_SEVERITY_ERROR );
-
-        delete board;
         return CLI::EXIT_CODES::ERR_UNKNOWN;
     }
 

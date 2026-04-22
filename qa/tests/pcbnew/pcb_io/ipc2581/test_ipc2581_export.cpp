@@ -189,11 +189,8 @@ struct IPC2581_EXPORT_FIXTURE
     std::unique_ptr<BOARD> LoadBoard( const std::string& aRelativePath )
     {
         std::string fullPath = KI_TEST::GetPcbnewTestDataDir() + aRelativePath;
-        std::unique_ptr<BOARD> board = std::make_unique<BOARD>();
 
-        m_kicadPlugin.LoadBoard( fullPath, board.get(), nullptr, nullptr );
-
-        return board;
+        return m_kicadPlugin.LoadBoard( fullPath );
     }
 
     bool ExportAndValidate( BOARD* aBoard, char aVersion, wxString& aErrorMsg,

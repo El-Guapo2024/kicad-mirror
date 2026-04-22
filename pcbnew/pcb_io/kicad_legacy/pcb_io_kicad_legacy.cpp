@@ -463,28 +463,14 @@ bool PCB_IO_KICAD_LEGACY::CanReadFootprint( const wxString& aFileName ) const
 }
 
 
-BOARD* PCB_IO_KICAD_LEGACY::LoadBoard( const wxString& aFileName, BOARD* aAppendToMe,
-                                 const std::map<std::string, UTF8>* aProperties, PROJECT* aProject )
+void PCB_IO_KICAD_LEGACY::loadBoard( const wxString& aFileName, BOARD& aBoard, bool aIsNewLoad,
+                                     const std::map<std::string, UTF8>* aProperties, PROJECT* aProject )
 {
     init( aProperties );
 
-    std::unique_ptr<BOARD> boardDeleter;
+    m_board = &aBoard;
 
-    if( aAppendToMe )
-    {
-        m_board = aAppendToMe;
-    }
-    else
-    {
-        boardDeleter = std::make_unique<BOARD>();
-        m_board = boardDeleter.get();
-    }
-
-    // Give the filename to the board if it's new
-    if( !aAppendToMe )
-        m_board->SetFileName( aFileName );
-
-    FILE_LINE_READER    reader( aFileName );
+    FILE_LINE_READER reader( aFileName );
 
     m_reader = &reader;
 
@@ -506,11 +492,9 @@ BOARD* PCB_IO_KICAD_LEGACY::LoadBoard( const wxString& aFileName, BOARD* aAppend
         reader.Rewind();
     }
 
-    loadAllSections( bool( aAppendToMe ) );
+    loadAllSections( !aIsNewLoad );
 
-    ignore_unused( boardDeleter.release() ); // give it up so we dont delete it on exit
     m_progressReporter = nullptr;
-    return m_board;
 }
 
 

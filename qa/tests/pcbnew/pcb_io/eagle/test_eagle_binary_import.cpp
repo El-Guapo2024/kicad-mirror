@@ -63,11 +63,11 @@ struct EAGLE_BINARY_IMPORT_FIXTURE
         // The binary format is identified by content, never by extension.
         BOOST_CHECK( eaglePlugin.CanReadBoard( dataPath ) );
 
-        BOARD* board = nullptr;
+        std::unique_ptr<BOARD> board;
 
         try
         {
-            board = eaglePlugin.LoadBoard( dataPath, nullptr, nullptr );
+            board = eaglePlugin.LoadBoard( dataPath );
         }
         catch( const IO_ERROR& e )
         {
@@ -77,8 +77,7 @@ struct EAGLE_BINARY_IMPORT_FIXTURE
         {
             BOOST_FAIL( std::string( "Exception loading binary Eagle board: " ) + e.what() );
         }
-
-        return board;
+        return board.release();
     }
 
     static std::vector<ZONE*> copperPours( BOARD* aBoard )

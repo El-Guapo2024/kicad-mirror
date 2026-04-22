@@ -86,7 +86,7 @@ BOOST_AUTO_TEST_CASE( SimpleBoardStructure )
 
     std::unique_ptr<BOARD> board = std::make_unique<BOARD>();
 
-    BOOST_REQUIRE_NO_THROW( m_plugin.LoadBoard( path( "PRJ.PCB" ), board.get(), nullptr ) );
+    BOOST_REQUIRE_NO_THROW( board = m_plugin.LoadBoard( path( "PRJ.PCB" ) ) );
     BOOST_REQUIRE( board );
 
     BOOST_CHECK_GT( board->Footprints().size(), 0 );
@@ -112,9 +112,9 @@ BOOST_AUTO_TEST_CASE( RichBoardStructure )
         return;
     }
 
-    std::unique_ptr<BOARD> board = std::make_unique<BOARD>();
+    std::unique_ptr<BOARD> board;
 
-    BOOST_REQUIRE_NO_THROW( m_plugin.LoadBoard( path( "PRJ12.PCB" ), board.get(), nullptr ) );
+    BOOST_REQUIRE_NO_THROW( board = m_plugin.LoadBoard( path( "PRJ12.PCB" ) ) );
     BOOST_REQUIRE( board );
 
     int tracks = 0;
@@ -156,8 +156,8 @@ BOOST_AUTO_TEST_CASE( AllSamplesLoad )
 
         any = true;
 
-        std::unique_ptr<BOARD> board = std::make_unique<BOARD>();
-        BOOST_REQUIRE_NO_THROW( m_plugin.LoadBoard( path( name ), board.get(), nullptr ) );
+        std::unique_ptr<BOARD> board;
+        BOOST_REQUIRE_NO_THROW( board = m_plugin.LoadBoard( path( name ) ) );
         BOOST_REQUIRE( board );
 
         size_t items = board->Tracks().size() + board->Footprints().size() + board->Drawings().size();

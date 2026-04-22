@@ -62,10 +62,7 @@ struct ALLEGRO_IMPORT_FIXTURE
     {
         std::string dataPath = KI_TEST::AllegroBoardFile( aFileName );
 
-        std::unique_ptr<BOARD> board = std::make_unique<BOARD>();
-        m_allegroPlugin.LoadBoard( dataPath, board.get(), nullptr, nullptr );
-
-        return board;
+        return m_allegroPlugin.LoadBoard( dataPath );
     }
 
     PCB_IO_ALLEGRO m_allegroPlugin;
@@ -2559,11 +2556,11 @@ BOOST_AUTO_TEST_CASE( UIImportPath_NullBoard )
     CAPTURING_REPORTER reporter;
     plugin.SetReporter( &reporter );
 
-    BOARD* rawBoard = nullptr;
+    std::unique_ptr<BOARD> board;
 
     try
     {
-        rawBoard = plugin.LoadBoard( dataPath, nullptr, nullptr, nullptr );
+        board = plugin.LoadBoard( dataPath );
     }
     catch( const IO_ERROR& e )
     {
@@ -2576,9 +2573,7 @@ BOOST_AUTO_TEST_CASE( UIImportPath_NullBoard )
 
     reporter.PrintAllMessages( "UIImportPath_NullBoard" );
 
-    BOOST_REQUIRE_MESSAGE( rawBoard != nullptr, "LoadBoard with nullptr aAppendToMe must return a valid board" );
-
-    std::unique_ptr<BOARD> board( rawBoard );
+    BOOST_REQUIRE_MESSAGE( board != nullptr, "LoadBoard must return a valid board" );
 
     BOOST_CHECK_GT( board->GetNetCount(), 0 );
     BOOST_CHECK_GT( board->Footprints().size(), 0 );
@@ -2959,11 +2954,9 @@ BOOST_AUTO_TEST_CASE( LegacyNetclassFlags )
     CAPTURING_REPORTER reporter;
     plugin.SetReporter( &reporter );
 
-    BOARD* rawBoard = plugin.LoadBoard( dataPath, nullptr, nullptr, nullptr );
+    std::unique_ptr<BOARD> board = plugin.LoadBoard( dataPath );
 
-    BOOST_REQUIRE( rawBoard );
-
-    std::unique_ptr<BOARD> board( rawBoard );
+    BOOST_REQUIRE( board );
 
     BOOST_CHECK_MESSAGE( board->m_LegacyNetclassesLoaded,
                          "m_LegacyNetclassesLoaded must be true after Allegro import" );

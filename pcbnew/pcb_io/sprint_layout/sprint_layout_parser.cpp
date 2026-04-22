@@ -836,13 +836,13 @@ NETINFO_ITEM* SPRINT_LAYOUT_PARSER::resolveItemNet( BOARD* aBoard, const SPRINT_
 }
 
 
-BOARD* SPRINT_LAYOUT_PARSER::CreateBoard( std::map<wxString, std::unique_ptr<FOOTPRINT>>& aFootprintMap,
-                                          size_t                                          aBoardIndex )
+bool SPRINT_LAYOUT_PARSER::CreateBoard( BOARD& aBoard, std::map<wxString, std::unique_ptr<FOOTPRINT>>& aFootprintMap,
+                                        size_t aBoardIndex )
 {
     if( aBoardIndex >= m_fileData.boards.size() )
-        return nullptr;
+        return false;
 
-    std::unique_ptr<BOARD> board = std::make_unique<BOARD>();
+    BOARD* board = &aBoard;
 
     // Set up copper layers based on whether inner layers are used
     const SPRINT_LAYOUT::BOARD_DATA& boardData = m_fileData.boards[aBoardIndex];
@@ -897,10 +897,10 @@ BOARD* SPRINT_LAYOUT_PARSER::CreateBoard( std::map<wxString, std::unique_ptr<FOO
         int w = sprintToKicadCoord( static_cast<float>( boardData.size_x ) );
         int h = sprintToKicadCoord( static_cast<float>( boardData.size_y ) );
 
-        gndPlaneNet = new NETINFO_ITEM( board.get(), gndPlaneNetName );
+        gndPlaneNet = new NETINFO_ITEM( board, gndPlaneNetName );
         board->Add( gndPlaneNet );
 
-        ZONE* zone = new ZONE( board.get() );
+        ZONE* zone = new ZONE( board );
         zone->SetLayerSet( groundPlaneLayerSet );
         zone->SetIsRuleArea( false );
         zone->SetZoneName( wxS( "GND_PLANE" ) );
@@ -932,7 +932,7 @@ BOARD* SPRINT_LAYOUT_PARSER::CreateBoard( std::map<wxString, std::unique_ptr<FOO
         if( it != componentMap.end() )
             return it->second;
 
-        FOOTPRINT* fp = new FOOTPRINT( board.get() );
+        FOOTPRINT* fp = new FOOTPRINT( board );
 
         if( aObj.type == SPRINT_LAYOUT::OBJ_STROKE_TEXT && !aObj.text.empty() )
         {
@@ -985,7 +985,7 @@ BOARD* SPRINT_LAYOUT_PARSER::CreateBoard( std::map<wxString, std::unique_ptr<FOO
     // Second pass: process all objects in board/footprint context
     for( const SPRINT_LAYOUT::OBJECT& obj : boardData.objects )
     {
-        BOARD_ITEM_CONTAINER* container = board.get();
+        BOARD_ITEM_CONTAINER* container = board;
 
         if( FOOTPRINT* fp = getOrCreateComponentFootprint( obj ) )
             container = fp;
@@ -1025,7 +1025,7 @@ BOARD* SPRINT_LAYOUT_PARSER::CreateBoard( std::map<wxString, std::unique_ptr<FOO
         // clang-format on
     }
 
-    resolveGroups( board.get(), gidToItems );
+    resolveGroups( board, gidToItems );
 
     // Re-anchor footprints after all elements are added.
     for( FOOTPRINT* fp : board->Footprints() )
@@ -1049,7 +1049,7 @@ BOARD* SPRINT_LAYOUT_PARSER::CreateBoard( std::map<wxString, std::unique_ptr<FOO
         aFootprintMap[fpKey] = std::unique_ptr<FOOTPRINT>( fpCopy );
     }
 
-    buildOutline( board.get(), outlineSegments, boardData );
+    buildOutline( board, outlineSegments, boardData );
 
     // Center the board content on the page
     BOX2I bbox = board->ComputeBoundingBox( true );
@@ -1069,7 +1069,7 @@ BOARD* SPRINT_LAYOUT_PARSER::CreateBoard( std::map<wxString, std::unique_ptr<FOO
             item->Move( centerOffset );
     }
 
-    return board.release();
+    return true;
 }
 
 

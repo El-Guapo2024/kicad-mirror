@@ -66,10 +66,6 @@ public:
 
     bool CanReadBoard( const wxString& aFileName ) const override;
 
-    BOARD* LoadBoard( const wxString& aFileName, BOARD* aAppendToMe,
-                      const std::map<std::string, UTF8>* aProperties = nullptr,
-                      PROJECT* aProject = nullptr ) override;
-
     std::vector<FOOTPRINT*> GetImportedCachedLibraryFootprints() override;
 
     // Footprint library support
@@ -135,8 +131,11 @@ private:
     bool testFlags( const wxString& aFlag, long aMask, const wxChar* aName );
 
 protected:
-    wxString               m_error;    ///< for throwing exceptions
-    GPCB_FPL_CACHE*        m_cache;    ///< Footprint library cache.
+    void loadBoard( const wxString& aFileName, BOARD& aBoard, bool aIsNewLoad,
+                    const std::map<std::string, UTF8>* aProperties = nullptr, PROJECT* aProject = nullptr ) override;
+
+    wxString               m_error; ///< for throwing exceptions
+    GPCB_FPL_CACHE*        m_cache; ///< Footprint library cache.
     int                    m_ctl;
     LINE_READER*           m_reader;   ///< no ownership here.
     wxString               m_filename; ///< for saves only, name is in m_reader for loads

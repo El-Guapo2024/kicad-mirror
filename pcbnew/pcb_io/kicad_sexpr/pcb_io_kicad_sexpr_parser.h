@@ -94,13 +94,13 @@ public:
     typedef std::unordered_map< std::string, LSET >         LSET_MAP;
     typedef std::unordered_map< wxString, KIID >            KIID_MAP;
 
-    PCB_IO_KICAD_SEXPR_PARSER( LINE_READER* aReader, BOARD* aAppendToMe,
+    PCB_IO_KICAD_SEXPR_PARSER( LINE_READER* aReader, BOARD* aBoard,
                                std::function<bool( wxString, int, wxString, wxString )> aQueryUserCallback,
                                PROGRESS_REPORTER* aProgressReporter = nullptr, unsigned aLineCount = 0,
-                               bool aPreserveDestinationStackup = false ) :
+                               bool aPreserveDestinationStackup = false, bool aAppendToExisting = false ) :
             PCB_LEXER( aReader ),
-            m_board( aAppendToMe ),
-            m_appendToExisting( aAppendToMe != nullptr ),
+            m_board( aBoard ),
+            m_appendToExisting( aAppendToExisting ),
             m_preserveDestinationStackup( aPreserveDestinationStackup ),
             m_progressReporter( aProgressReporter ),
             m_lastProgressTime( std::chrono::steady_clock::now() ),

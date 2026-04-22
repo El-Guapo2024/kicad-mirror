@@ -131,20 +131,16 @@ bool PCB_IO_EASYEDA::CanReadLibrary( const wxString& aFileName ) const
 }
 
 
-BOARD* PCB_IO_EASYEDA::LoadBoard( const wxString& aFileName, BOARD* aAppendToMe,
-                                  const std::map<std::string, UTF8>* aProperties, PROJECT* aProject )
+void PCB_IO_EASYEDA::loadBoard( const wxString& aFileName, BOARD& aBoard, bool aIsNewLoad,
+                                const std::map<std::string, UTF8>* aProperties, PROJECT* aProject )
 {
     m_loadedFootprints.clear();
 
     m_props = aProperties;
-    m_board = aAppendToMe ? aAppendToMe : new BOARD();
+    m_board = &aBoard;
 
     // Collect the font substitution warnings (RAII - automatically reset on scope exit)
     FONTCONFIG_REPORTER_SCOPE fontconfigScope( &LOAD_INFO_REPORTER::GetInstance() );
-
-    // Give the filename to the board if it's new
-    if( !aAppendToMe )
-        m_board->SetFileName( aFileName );
 
     if( m_progressReporter )
     {
@@ -254,8 +250,6 @@ BOARD* PCB_IO_EASYEDA::LoadBoard( const wxString& aFileName, BOARD* aAppendToMe,
 
         m_board->Move( offset );
         bds.SetAuxOrigin( offset );
-
-        return m_board;
     }
     catch( nlohmann::json::exception& e )
     {

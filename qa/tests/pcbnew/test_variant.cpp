@@ -1007,7 +1007,7 @@ BOOST_AUTO_TEST_CASE( VariantTestR2FootprintAttributeVerification )
     wxString dataPath = KI_TEST::GetPcbnewTestDataDir() + wxString( "variant_test/variant_test.kicad_pcb" );
 
     PCB_IO_KICAD_SEXPR pcbIo;
-    std::unique_ptr<BOARD> board( pcbIo.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = pcbIo.LoadBoard( dataPath );
 
     BOOST_REQUIRE( board );
     BOOST_REQUIRE( board->HasVariant( "Variant A" ) );
@@ -1094,7 +1094,7 @@ BOOST_AUTO_TEST_CASE( VariantTestProjectLoad )
     wxString dataPath = KI_TEST::GetPcbnewTestDataDir() + wxString( "variant_test/variant_test.kicad_pcb" );
 
     PCB_IO_KICAD_SEXPR pcbIo;
-    std::unique_ptr<BOARD> board( pcbIo.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = pcbIo.LoadBoard( dataPath );
 
     BOOST_REQUIRE( board );
 

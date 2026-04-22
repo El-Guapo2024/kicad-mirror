@@ -92,11 +92,11 @@ std::vector<FOOTPRINT*> PCB_IO_CADSTAR_ARCHIVE::GetImportedCachedLibraryFootprin
 }
 
 
-BOARD* PCB_IO_CADSTAR_ARCHIVE::LoadBoard( const wxString& aFileName, BOARD* aAppendToMe,
-                                              const std::map<std::string, UTF8>* aProperties, PROJECT* aProject )
+void PCB_IO_CADSTAR_ARCHIVE::loadBoard( const wxString& aFileName, BOARD& aBoard, bool aIsNewLoad,
+                                        const std::map<std::string, UTF8>* aProperties, PROJECT* aProject )
 {
     m_props = aProperties;
-    m_board = aAppendToMe ? aAppendToMe : new BOARD();
+    m_board = &aBoard;
     clearLoadedFootprints();
 
     // Collect the font substitution warnings (RAII - automatically reset on scope exit)
@@ -141,8 +141,6 @@ BOARD* PCB_IO_CADSTAR_ARCHIVE::LoadBoard( const wxString& aFileName, BOARD* aApp
     // tempPCB is about to go out of scope.  Do NOT leave footprints pointing to it.
     for( FOOTPRINT* footprint : m_loaded_footprints )
         footprint->SetParent( nullptr );
-
-    return m_board;
 }
 
 

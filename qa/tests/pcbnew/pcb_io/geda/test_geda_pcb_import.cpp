@@ -53,7 +53,7 @@ BOOST_AUTO_TEST_CASE( MinimalBoardLoad )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/io/geda/minimal_test.pcb";
 
-    std::unique_ptr<BOARD> board( m_plugin.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
     BOOST_REQUIRE( board );
 
@@ -82,7 +82,7 @@ BOOST_AUTO_TEST_CASE( MinimalBoardPads )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/io/geda/minimal_test.pcb";
 
-    std::unique_ptr<BOARD> board( m_plugin.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
     BOOST_REQUIRE( board );
 
@@ -101,7 +101,7 @@ BOOST_AUTO_TEST_CASE( MinimalBoardNetlist )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/io/geda/minimal_test.pcb";
 
-    std::unique_ptr<BOARD> board( m_plugin.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
     BOOST_REQUIRE( board );
 
@@ -115,7 +115,7 @@ BOOST_AUTO_TEST_CASE( MinimalBoardTracks )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/io/geda/minimal_test.pcb";
 
-    std::unique_ptr<BOARD> board( m_plugin.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
     BOOST_REQUIRE( board );
 
@@ -128,7 +128,7 @@ BOOST_AUTO_TEST_CASE( MinimalBoardVias )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/io/geda/minimal_test.pcb";
 
-    std::unique_ptr<BOARD> board( m_plugin.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
     BOOST_REQUIRE( board );
 
@@ -149,7 +149,7 @@ BOOST_AUTO_TEST_CASE( MinimalBoardCopperLayers )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/io/geda/minimal_test.pcb";
 
-    std::unique_ptr<BOARD> board( m_plugin.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
     BOOST_REQUIRE( board );
 
@@ -162,7 +162,7 @@ BOOST_AUTO_TEST_CASE( CachedLibraryFootprints )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/io/geda/minimal_test.pcb";
 
-    std::unique_ptr<BOARD> board( m_plugin.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
     BOOST_REQUIRE( board );
 
@@ -179,7 +179,7 @@ BOOST_AUTO_TEST_CASE( RealWorldBoardLoad )
     // Test with a real-world gEDA board file
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/io/geda/powermeter.pcb";
 
-    std::unique_ptr<BOARD> board( m_plugin.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
     BOOST_REQUIRE( board );
     BOOST_CHECK( board->Footprints().size() > 0 );
@@ -215,7 +215,7 @@ BOOST_AUTO_TEST_CASE( OnsolderElementFlippedToBack )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/io/geda/onsolder_test.pcb";
 
-    std::unique_ptr<BOARD> board( m_plugin.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
     BOOST_REQUIRE( board );
     BOOST_CHECK_EQUAL( board->Footprints().size(), 2 );
@@ -250,7 +250,7 @@ BOOST_AUTO_TEST_CASE( MultilayerBoardCopperCount )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/io/geda/multilayer_test.pcb";
 
-    std::unique_ptr<BOARD> board( m_plugin.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
     BOOST_REQUIRE( board );
 
@@ -263,7 +263,7 @@ BOOST_AUTO_TEST_CASE( MultilayerBoardThroughHolePins )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/io/geda/multilayer_test.pcb";
 
-    std::unique_ptr<BOARD> board( m_plugin.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
     BOOST_REQUIRE( board );
 
@@ -291,7 +291,7 @@ BOOST_AUTO_TEST_CASE( MultilayerBoardNetAssignment )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/io/geda/multilayer_test.pcb";
 
-    std::unique_ptr<BOARD> board( m_plugin.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
     BOOST_REQUIRE( board );
 
@@ -321,7 +321,7 @@ BOOST_AUTO_TEST_CASE( MultilayerBoardVias )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/io/geda/multilayer_test.pcb";
 
-    std::unique_ptr<BOARD> board( m_plugin.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
     BOOST_REQUIRE( board );
 
@@ -349,7 +349,7 @@ BOOST_AUTO_TEST_CASE( GoodfetBoardLoad )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/io/geda/goodfet50.pcb";
 
-    std::unique_ptr<BOARD> board( m_plugin.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
     BOOST_REQUIRE( board );
     BOOST_CHECK( board->Footprints().size() > 5 );
@@ -361,7 +361,7 @@ BOOST_AUTO_TEST_CASE( Scsi2sdBoardLoad )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/io/geda/scsi2sd.pcb";
 
-    std::unique_ptr<BOARD> board( m_plugin.LoadBoard( dataPath, nullptr ) );
+    std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
     BOOST_REQUIRE( board );
     BOOST_CHECK( board->Footprints().size() > 10 );

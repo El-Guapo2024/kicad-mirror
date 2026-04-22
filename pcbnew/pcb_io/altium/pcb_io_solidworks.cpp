@@ -55,19 +55,14 @@ bool PCB_IO_SOLIDWORKS::CanReadBoard( const wxString& aFileName ) const
 }
 
 
-BOARD* PCB_IO_SOLIDWORKS::LoadBoard( const wxString& aFileName, BOARD* aAppendToMe,
-                                         const std::map<std::string, UTF8>* aProperties, PROJECT* aProject )
+void PCB_IO_SOLIDWORKS::loadBoard( const wxString& aFileName, BOARD& aBoard, bool aIsNewLoad,
+                                   const std::map<std::string, UTF8>* aProperties, PROJECT* aProject )
 {
     m_props = aProperties;
-
-    m_board = aAppendToMe ? aAppendToMe : new BOARD();
+    m_board = &aBoard;
 
     // Collect the font substitution warnings (RAII - automatically reset on scope exit)
     FONTCONFIG_REPORTER_SCOPE fontconfigScope( &LOAD_INFO_REPORTER::GetInstance() );
-
-    // Give the filename to the board if it's new
-    if( !aAppendToMe )
-        m_board->SetFileName( aFileName );
 
     // clang-format off
     const std::map<ALTIUM_PCB_DIR, std::string> mapping = {
@@ -147,6 +142,4 @@ BOARD* PCB_IO_SOLIDWORKS::LoadBoard( const wxString& aFileName, BOARD* aAppendTo
 
         ApplyAltiumProjectParametersToProject( aProject, ParseAltiumProjectParameters( projectFile ) );
     }
-
-    return m_board;
 }

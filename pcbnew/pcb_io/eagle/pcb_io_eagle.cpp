@@ -331,8 +331,8 @@ VECTOR2I inline PCB_IO_EAGLE::kicad_fontsize( const ECOORD& d, int aTextThicknes
 }
 
 
-BOARD* PCB_IO_EAGLE::LoadBoard( const wxString& aFileName, BOARD* aAppendToMe,
-                                const std::map<std::string, UTF8>* aProperties, PROJECT* aProject )
+void PCB_IO_EAGLE::loadBoard( const wxString& aFileName, BOARD& aBoard, bool aIsNewLoad,
+                              const std::map<std::string, UTF8>* aProperties, PROJECT* aProject )
 {
     wxXmlNode*      doc;
 
@@ -341,14 +341,7 @@ BOARD* PCB_IO_EAGLE::LoadBoard( const wxString& aFileName, BOARD* aAppendToMe,
 
     init( aProperties );
 
-    m_board = aAppendToMe ? aAppendToMe : new BOARD();
-
-    // Give the filename to the board if it's new
-    if( !aAppendToMe )
-        m_board->SetFileName( aFileName );
-
-    // delete on exception, if I own m_board, according to aAppendToMe
-    unique_ptr<BOARD> deleter( aAppendToMe ? nullptr : m_board );
+    m_board = &aBoard;
 
     try
     {
@@ -486,9 +479,6 @@ BOARD* PCB_IO_EAGLE::LoadBoard( const wxString& aFileName, BOARD* aAppendToMe,
     m_board->GetDesignSettings().SetEnabledLayers( enabledLayers );
 
     centerBoard();
-
-    deleter.release();
-    return m_board;
 }
 
 

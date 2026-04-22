@@ -111,12 +111,10 @@ bool PCB_IO_PADS::CanReadBoard( const wxString& aFileName ) const
 }
 
 
-BOARD* PCB_IO_PADS::LoadBoard( const wxString& aFileName, BOARD* aAppendToMe,
-                               const std::map<std::string, UTF8>* aProperties, PROJECT* aProject )
+void PCB_IO_PADS::loadBoard( const wxString& aFileName, BOARD& aBoard, bool aIsNewLoad,
+                             const std::map<std::string, UTF8>* aProperties, PROJECT* aProject )
 {
     LOCALE_IO setlocale;
-
-    std::unique_ptr<BOARD> board( aAppendToMe ? aAppendToMe : new BOARD() );
 
     if( m_reporter )
         m_reporter->Report( _( "Starting PADS PCB import" ), RPT_SEVERITY_INFO );
@@ -135,7 +133,7 @@ BOARD* PCB_IO_PADS::LoadBoard( const wxString& aFileName, BOARD* aAppendToMe,
         THROW_IO_ERRORF( wxT( "Error parsing PADS file: %s" ), e.what() );
     }
 
-    m_loadBoard = board.get();
+    m_loadBoard = &aBoard;
     m_parser = &parser;
     m_converter = std::make_unique<PADS_PCB_CONVERTER>( m_loadBoard, m_reporter );
     m_testPointIndex = 1;
@@ -178,7 +176,6 @@ BOARD* PCB_IO_PADS::LoadBoard( const wxString& aFileName, BOARD* aAppendToMe,
     }
 
     clearLoadingState();
-    return board.release();
 }
 
 

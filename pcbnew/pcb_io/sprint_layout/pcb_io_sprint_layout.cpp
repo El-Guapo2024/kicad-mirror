@@ -143,9 +143,8 @@ bool PCB_IO_SPRINT_LAYOUT::CanReadBoard( const wxString& aFileName ) const
 }
 
 
-BOARD* PCB_IO_SPRINT_LAYOUT::LoadBoard( const wxString& aFileName, BOARD* aAppendToMe,
-                                        const std::map<std::string, UTF8>* aProperties,
-                                        PROJECT* aProject )
+void PCB_IO_SPRINT_LAYOUT::loadBoard( const wxString& aFileName, BOARD& aBoard, bool aIsNewLoad,
+                                      const std::map<std::string, UTF8>* aProperties, PROJECT* aProject )
 {
     FONTCONFIG_REPORTER_SCOPE fontconfigScope( &LOAD_INFO_REPORTER::GetInstance() );
 
@@ -192,27 +191,29 @@ BOARD* PCB_IO_SPRINT_LAYOUT::LoadBoard( const wxString& aFileName, BOARD* aAppen
         boardIndex = static_cast<size_t>( idx );
     }
 
-    std::unique_ptr<BOARD> newBoard( parser.CreateBoard( m_loadedFootprints, boardIndex ) );
-
-    if( !newBoard )
-        THROW_IO_ERRORF( _( "Failed to create board from Sprint Layout file '%s'" ), aFileName );
-
-    if( aAppendToMe )
+    if( aIsNewLoad )
     {
-        for( FOOTPRINT* fp : newBoard->Footprints() )
-            aAppendToMe->Add( static_cast<FOOTPRINT*>( fp->Clone() ) );
-
-        for( BOARD_ITEM* item : newBoard->Drawings() )
-            aAppendToMe->Add( static_cast<BOARD_ITEM*>( item->Clone() ) );
-
-        for( ZONE* zone : newBoard->Zones() )
-            aAppendToMe->Add( static_cast<ZONE*>( zone->Clone() ) );
-
-        return aAppendToMe;
+        if( !parser.CreateBoard( aBoard, m_loadedFootprints, boardIndex ) )
+            THROW_IO_ERRORF( _( "Failed to create board from Sprint Layout file '%s'" ), aFileName );
     }
+    else
+    {
+        // Parse into a scratch board, then copy the design's items into the caller's
+        // board.  The destination keeps its own setup when merging.
+        std::unique_ptr<BOARD> scratchBoard = std::make_unique<BOARD>();
 
-    newBoard->SetFileName( aFileName );
-    return newBoard.release();
+        if( !parser.CreateBoard( *scratchBoard, m_loadedFootprints, boardIndex ) )
+            THROW_IO_ERRORF( _( "Failed to create board from Sprint Layout file '%s'" ), aFileName );
+
+        for( FOOTPRINT* fp : scratchBoard->Footprints() )
+            aBoard.Add( static_cast<FOOTPRINT*>( fp->Clone() ) );
+
+        for( BOARD_ITEM* item : scratchBoard->Drawings() )
+            aBoard.Add( static_cast<BOARD_ITEM*>( item->Clone() ) );
+
+        for( ZONE* zone : scratchBoard->Zones() )
+            aBoard.Add( static_cast<ZONE*>( zone->Clone() ) );
+    }
 }
 
 

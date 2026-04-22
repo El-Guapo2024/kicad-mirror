@@ -94,19 +94,15 @@ bool PCB_IO_FABMASTER::CanReadBoard( const wxString& aFileName ) const
 }
 
 
-BOARD* PCB_IO_FABMASTER::LoadBoard( const wxString& aFileName, BOARD* aAppendToMe,
-                                    const std::map<std::string, UTF8>* aProperties, PROJECT* aProject )
+void PCB_IO_FABMASTER::loadBoard( const wxString& aFileName, BOARD& aBoard, bool aIsNewLoad,
+                                  const std::map<std::string, UTF8>* aProperties, PROJECT* aProject )
 {
     m_props = aProperties;
 
     // Must be set before Read()/Process(), which emit most of the parse diagnostics.
     m_fabmaster.SetReporter( m_reporter );
 
-    m_board = aAppendToMe ? aAppendToMe : new BOARD();
-
-    // Give the filename to the board if it's new
-    if( !aAppendToMe )
-        m_board->SetFileName( aFileName );
+    m_board = &aBoard;
 
     if( m_progressReporter )
     {
@@ -121,6 +117,4 @@ BOARD* PCB_IO_FABMASTER::LoadBoard( const wxString& aFileName, BOARD* aAppendToM
 
     m_fabmaster.Process();
     m_fabmaster.LoadBoard( m_board, m_progressReporter );
-
-    return m_board;
 }

@@ -186,7 +186,7 @@ void PCB_DESIGN_BLOCK_PREVIEW_WIDGET::DisplayDesignBlock( DESIGN_BLOCK* aDesignB
 
             pi->SetProgressReporter( &progressReporter );
 
-            m_previewItem = pi->LoadBoard( aDesignBlock->GetBoardFile(), nullptr );
+            m_previewItem = pi->LoadBoard( aDesignBlock->GetBoardFile(), nullptr ).release();
         }
         catch( const IO_ERROR& ioe )
         {

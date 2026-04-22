@@ -95,16 +95,11 @@ bool PCB_IO_EASYEDAPRO::CanReadBoard( const wxString& aFileName ) const
 }
 
 
-BOARD* PCB_IO_EASYEDAPRO::LoadBoard( const wxString& aFileName, BOARD* aAppendToMe,
-                                     const std::map<std::string, UTF8>* aProperties, PROJECT* aProject )
+void PCB_IO_EASYEDAPRO::loadBoard( const wxString& aFileName, BOARD& aBoard, bool aIsNewLoad,
+                                   const std::map<std::string, UTF8>* aProperties, PROJECT* aProject )
 {
     m_props = aProperties;
-
-    m_board = aAppendToMe ? aAppendToMe : new BOARD();
-
-    // Give the filename to the board if it's new
-    if( !aAppendToMe )
-        m_board->SetFileName( aFileName );
+    m_board = &aBoard;
 
     // Collect the font substitution warnings (RAII - automatically reset on scope exit)
     FONTCONFIG_REPORTER_SCOPE fontconfigScope( &LOAD_INFO_REPORTER::GetInstance() );
@@ -152,12 +147,12 @@ BOARD* PCB_IO_EASYEDAPRO::LoadBoard( const wxString& aFileName, BOARD* aAppendTo
         }
 
         if( pcbToLoad.empty() )
-            return nullptr;
+            THROW_IO_ERROR( _( "No PCB was found in the project to import." ) );
 
         LoadAllDataFromProject( aFileName, project );
 
         if( !m_projectData )
-            return nullptr;
+            THROW_IO_ERROR( _( "Failed to load the project data." ) );
 
         auto cb = [&]( const wxString& name, const wxString& pcbUuid, wxInputStream& zip ) -> bool
         {
@@ -248,8 +243,6 @@ BOARD* PCB_IO_EASYEDAPRO::LoadBoard( const wxString& aFileName, BOARD* aAppendTo
         };
         EASYEDAPRO::IterateZipFiles( aFileName, cb );
     }
-
-    return m_board;
 }
 
 

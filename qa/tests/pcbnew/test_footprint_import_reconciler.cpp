@@ -108,8 +108,7 @@ IMPORTED_BOARD importSampleBoard( PROJECT& aProject, const std::string& aTag )
     sample.m_plugin = std::make_unique<PCB_IO_EASYEDAPRO_V3>();
     sample.m_board = std::make_unique<BOARD>();
     sample.m_board->SetProject( &aProject );
-    sample.m_plugin->LoadBoard( importFn.GetFullPath(), sample.m_board.get(), &properties,
-                                &aProject );
+    sample.m_plugin->LoadAndAppendBoard( importFn.GetFullPath(), *sample.m_board, &properties, &aProject );
 
     BOOST_REQUIRE_GT( sample.m_board->Footprints().size(), 0 );
 
@@ -213,7 +212,7 @@ BOOST_AUTO_TEST_CASE( EagleBoardResolvesToGeneratedCache )
     PCB_IO_EAGLE           plugin;
     std::unique_ptr<BOARD> board = std::make_unique<BOARD>();
     board->SetProject( &project );
-    plugin.LoadBoard( brdFn.GetFullPath(), board.get(), nullptr, &project );
+    plugin.LoadAndAppendBoard( brdFn.GetFullPath(), *board, nullptr, &project );
 
     BOOST_REQUIRE_GT( board->Footprints().size(), 0 );
 
@@ -285,7 +284,7 @@ BOOST_AUTO_TEST_CASE( AltiumBoardResolvesToGeneratedCache )
     PCB_IO_ALTIUM_DESIGNER plugin;
     std::unique_ptr<BOARD> board = std::make_unique<BOARD>();
     board->SetProject( &project );
-    plugin.LoadBoard( dataPath, board.get(), nullptr, &project );
+    plugin.LoadAndAppendBoard( dataPath, *board, nullptr, &project );
 
     BOOST_REQUIRE_GT( board->Footprints().size(), 0 );
 
@@ -442,7 +441,7 @@ BOOST_AUTO_TEST_CASE( SameNameFromDifferentLibrariesKeepsBothDefinitions )
     PCB_IO_ALTIUM_DESIGNER plugin;
     std::unique_ptr<BOARD> source = std::make_unique<BOARD>();
     source->SetProject( &project );
-    plugin.LoadBoard( dataPath, source.get(), nullptr, &project );
+    plugin.LoadAndAppendBoard( dataPath, *source, nullptr, &project );
 
     // two real imported footprints that a pad count tells apart
     FOOTPRINT* firstSource = nullptr;
@@ -592,7 +591,7 @@ BOOST_AUTO_TEST_CASE( ReconciledFootprintsResolveViaNetlistUpdater )
     PCB_IO_EAGLE           plugin;
     std::unique_ptr<BOARD> imported = std::make_unique<BOARD>();
     imported->SetProject( &project );
-    plugin.LoadBoard( brdFn.GetFullPath(), imported.get(), nullptr, &project );
+    plugin.LoadAndAppendBoard( brdFn.GetFullPath(), *imported, nullptr, &project );
 
     std::vector<FOOTPRINT*>                 raw = plugin.GetImportedCachedLibraryFootprints();
     std::vector<std::unique_ptr<FOOTPRINT>> defs;

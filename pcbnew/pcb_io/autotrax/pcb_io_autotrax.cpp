@@ -125,21 +125,14 @@ bool PCB_IO_AUTOTRAX::CanReadBoard( const wxString& aFileName ) const
 }
 
 
-BOARD* PCB_IO_AUTOTRAX::LoadBoard( const wxString& aFileName, BOARD* aAppendToMe,
-                                   const std::map<std::string, UTF8>* aProperties, PROJECT* aProject )
+void PCB_IO_AUTOTRAX::loadBoard( const wxString& aFileName, BOARD& aBoard, bool aIsNewLoad,
+                                 const std::map<std::string, UTF8>* aProperties, PROJECT* aProject )
 {
     m_props = aProperties;
-    m_board = aAppendToMe ? aAppendToMe : new BOARD();
-
-    // Own a freshly-allocated board until parsing succeeds so a thrown IO_ERROR
-    // does not leak it. An appended board belongs to the caller.
-    std::unique_ptr<BOARD> boardDeleter( aAppendToMe ? nullptr : m_board );
+    m_board = &aBoard;
 
     m_nets.clear();
     m_maxY = 0;
-
-    if( !aAppendToMe )
-        m_board->SetFileName( aFileName );
 
     wxString contents;
 
@@ -155,9 +148,6 @@ BOARD* PCB_IO_AUTOTRAX::LoadBoard( const wxString& aFileName, BOARD* aAppendToMe
         THROW_IO_ERRORF( _( "'%s' is not a valid Protel Autotrax file." ), aFileName );
 
     buildBoard( data );
-
-    boardDeleter.release();
-    return m_board;
 }
 
 

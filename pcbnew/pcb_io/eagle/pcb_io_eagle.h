@@ -151,9 +151,6 @@ public:
     bool CanReadLibrary( const wxString& aFileName ) const override;
     bool CanReadFootprint( const wxString& aFileName ) const override;
 
-    BOARD* LoadBoard( const wxString& aFileName, BOARD* aAppendToMe,
-                      const std::map<std::string, UTF8>* aProperties = nullptr, PROJECT* aProject = nullptr ) override;
-
     std::vector<FOOTPRINT*> GetImportedCachedLibraryFootprints() override;
 
     void FootprintEnumerate( wxArrayString& aFootprintNames, const wxString& aLibraryPath,
@@ -174,6 +171,10 @@ public:
 
     PCB_IO_EAGLE();
     ~PCB_IO_EAGLE();
+
+protected:
+    void loadBoard( const wxString& aFileName, BOARD& aBoard, bool aIsNewLoad,
+                    const std::map<std::string, UTF8>* aProperties = nullptr, PROJECT* aProject = nullptr ) override;
 
     /**
      * Return the automapped layers.

@@ -197,7 +197,7 @@ public:
 
     void SetConsoleOutputEnabled( bool aEnabled ) { m_silenceConsoleOutput = !aEnabled; }
 
-    const wxString& GetLogContents() const 
+    const wxString& GetLogContents() const
     {
         return m_logContents;
     }

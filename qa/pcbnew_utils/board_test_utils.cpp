@@ -818,14 +818,11 @@ void CAPTURING_REPORTER::PrintAllMessages( const std::string& aContext ) const
 
 std::unique_ptr<BOARD> LoadBoardWithCapture( PCB_IO& aIoPlugin, const std::string& aFilePath, REPORTER* aReporter )
 {
-    std::unique_ptr<BOARD> board = std::make_unique<BOARD>();
-
     aIoPlugin.SetReporter( aReporter );
 
     try
     {
-        aIoPlugin.LoadBoard( aFilePath, board.get(), nullptr, nullptr );
-        return board;
+        return aIoPlugin.LoadBoard( aFilePath );
     }
     catch( const IO_ERROR& e )
     {

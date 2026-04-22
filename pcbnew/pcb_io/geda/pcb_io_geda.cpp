@@ -1918,20 +1918,14 @@ void PCB_IO_GEDA::parseNetList( LINE_READER* aLineReader )
 }
 
 
-BOARD* PCB_IO_GEDA::LoadBoard( const wxString& aFileName, BOARD* aAppendToMe,
-                               const std::map<std::string, UTF8>* aProperties,
-                               PROJECT* aProject )
+void PCB_IO_GEDA::loadBoard( const wxString& aFileName, BOARD& aBoard, bool aIsNewLoad,
+                             const std::map<std::string, UTF8>* aProperties, PROJECT* aProject )
 {
     FONTCONFIG_REPORTER_SCOPE fontconfigScope( &LOAD_INFO_REPORTER::GetInstance() );
 
     init( aProperties );
 
-    m_board = aAppendToMe ? aAppendToMe : new BOARD();
-
-    if( !aAppendToMe )
-        m_board->SetFileName( aFileName );
-
-    std::unique_ptr<BOARD> deleter( aAppendToMe ? nullptr : m_board );
+    m_board = &aBoard;
 
     for( FOOTPRINT* fp : m_cachedFootprints )
         delete fp;
@@ -2058,9 +2052,6 @@ BOARD* PCB_IO_GEDA::LoadBoard( const wxString& aFileName, BOARD* aAppendToMe,
 
     m_board->m_LegacyDesignSettingsLoaded = true;
     m_board->m_LegacyNetclassesLoaded = true;
-
-    deleter.release();
-    return m_board;
 }
 
 

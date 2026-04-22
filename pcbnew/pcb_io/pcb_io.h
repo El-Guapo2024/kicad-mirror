@@ -110,15 +110,10 @@ public:
 
     /**
      * Load information from some input file format that this PCB_IO implementation
-     * knows about into either a new #BOARD or an existing one.
-     *
-     * This may be used to load an entire new #BOARD, or to augment an existing one if
-     * @a aAppendToMe is not NULL.
+     * knows about into new #BOARD.
      *
      * @param aFileName is the name of the file to use as input and may be foreign in
      *                  nature or native in nature.
-     * @param aAppendToMe is an existing BOARD to append to, but if NULL then this means
-     *                    "do not append, rather load anew".
      * @param aProperties is an associative array that can be used to tell the loader how to
      *                    load the file, because it can take any number of additional named
      *                    arguments that the plugin is known to support. These are tuning
@@ -127,16 +122,25 @@ public:
      *                    it to be optionally NULL.
      * @param aProject is the optional #PROJECT object primarily used by third party
      *                 importers.
-     * @return the successfully loaded board, or the same one as \a aAppendToMe if aAppendToMe
-     *         was not NULL, and caller owns it.
+     * @return the successfully loaded board. Caller owns it.
      *
      * @throw IO_ERROR if there is a problem loading, and its contents should say what went
      *                 wrong, using line number and character offsets of the input file if
      *                 possible.
      */
-    virtual BOARD* LoadBoard( const wxString& aFileName, BOARD* aAppendToMe,
-                              const std::map<std::string, UTF8>* aProperties = nullptr,
-                              PROJECT* aProject = nullptr );
+    std::unique_ptr<BOARD> LoadBoard( const wxString&                    aFileName,
+                                      const std::map<std::string, UTF8>* aProperties = nullptr,
+                                      PROJECT*                           aProject = nullptr );
+
+
+    /**
+     * Same as \ref LoadBoard(), but appends the loaded board to an existing board, which must
+     * already exist.
+     *
+     * @param aAppendToMe is the existing board to append to. The caller always owns it.
+     */
+    void LoadAndAppendBoard( const wxString& aFileName, BOARD& aAppendToMe,
+                             const std::map<std::string, UTF8>* aProperties = nullptr, PROJECT* aProject = nullptr );
 
     /**
      * Return a container with the cached library footprints generated in the last call to
@@ -348,6 +352,16 @@ protected:
             m_board( nullptr ),
             m_props( nullptr )
     {}
+
+    /**
+     * Parse @a aFileName into @a aBoard.  The caller owns @a aBoard in both cases.
+     *
+     * @param aIsNewLoad is true for a fresh load (adopt the file's setup, keep the
+     *                   file's UUIDs) and false when merging into an existing board
+     *                   (preserve its setup, regenerate UUIDs that would clash).
+     */
+    virtual void loadBoard( const wxString& aFileName, BOARD& aBoard, bool aIsNewLoad,
+                            const std::map<std::string, UTF8>* aProperties, PROJECT* aProject );
 
     /// The board BOARD being worked on, no ownership here
     BOARD* m_board;

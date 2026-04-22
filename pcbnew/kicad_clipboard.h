@@ -56,9 +56,6 @@ public:
 
     BOARD_ITEM* Parse();
 
-    BOARD* LoadBoard( const wxString& aFileName, BOARD* aAppendToMe,
-                      const std::map<std::string, UTF8>* aProperties = nullptr, PROJECT* aProject = nullptr ) override;
-
     void SetBoard( BOARD* aBoard );
 
 private:

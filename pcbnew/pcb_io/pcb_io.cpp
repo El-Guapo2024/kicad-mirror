@@ -26,6 +26,7 @@
 #include <wx/translation.h>
 #include <wx/dir.h>
 
+#include <board.h>
 #include <footprint.h>
 
 
@@ -68,8 +69,28 @@ bool PCB_IO::CanReadFootprint( const wxString& aFileName ) const
 }
 
 
-BOARD* PCB_IO::LoadBoard( const wxString& aFileName, BOARD* aAppendToMe,
-                          const std::map<std::string, UTF8>* aProperties, PROJECT* aProject )
+std::unique_ptr<BOARD> PCB_IO::LoadBoard( const wxString& aFileName, const std::map<std::string, UTF8>* aProperties,
+                                          PROJECT* aProject )
+{
+    std::unique_ptr<BOARD> newBoard = std::make_unique<BOARD>();
+
+    newBoard->SetFileName( aFileName );
+
+    loadBoard( aFileName, *newBoard, /*aIsNewLoad = */ true, aProperties, aProject );
+
+    return newBoard;
+}
+
+
+void PCB_IO::LoadAndAppendBoard( const wxString& aFileName, BOARD& aAppendToMe,
+                                 const std::map<std::string, UTF8>* aProperties, PROJECT* aProject )
+{
+    loadBoard( aFileName, aAppendToMe, /*aIsNewLoad = */ false, aProperties, aProject );
+}
+
+
+void PCB_IO::loadBoard( const wxString& aFileName, BOARD& aBoard, bool aIsNewLoad,
+                        const std::map<std::string, UTF8>* aProperties, PROJECT* aProject )
 {
     NOT_IMPLEMENTED( __FUNCTION__ );
 }

@@ -130,7 +130,7 @@ BOOST_AUTO_TEST_CASE( BoardLoadImportsInnerLayers )
     IO_RELEASER<PCB_IO> plugin( PCB_IO_MGR::FindPlugin( PCB_IO_MGR::EASYEDAPRO_V3 ) );
     BOOST_REQUIRE( plugin );
 
-    std::unique_ptr<BOARD> board( plugin->LoadBoard( dataFile.GetFullPath(), nullptr, &properties ) );
+    std::unique_ptr<BOARD> board = plugin->LoadBoard( dataFile.GetFullPath(), &properties );
     BOOST_REQUIRE( board );
 
     // Loading a board is a read, so nothing may appear beside the archive
