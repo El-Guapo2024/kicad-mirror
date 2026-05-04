@@ -102,13 +102,13 @@ RUN git clone --depth 1 https://gitlab.com/kicad/code/kicad-python.git /opt/kica
     cd /opt/kicad-python && \
     git submodule update --init --recursive --depth 1 && \
     mkdir -p kipy/proto/schematic && \
-    cat > kipy/proto/schematic/__init__.py <<'EOF'
-# Workaround for missing __init__.py upstream — see Dockerfile.
-# flake8: noqa
-from .schematic_types_pb2 import *
-from .schematic_jobs_pb2 import *
-from .schematic_commands_pb2 import *
-EOF
+    printf '%s\n' \
+        '# Workaround for missing __init__.py upstream — see Dockerfile.' \
+        '# flake8: noqa' \
+        'from .schematic_types_pb2 import *' \
+        'from .schematic_jobs_pb2 import *' \
+        'from .schematic_commands_pb2 import *' \
+        > kipy/proto/schematic/__init__.py && \
     python3 -m pip install --break-system-packages --no-cache-dir --no-deps .
 
 # ─── Runtime defaults ───────────────────────────────────────────────
