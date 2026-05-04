@@ -1,0 +1,39 @@
+name: Initial mirror from upstream
+
+# One-shot bootstrap: clones gitlab.com/kicad/code/kicad in full and
+# force-pushes to this repo's master + all tags. Use once when setting
+# up the mirror. After this runs, sync-upstream.yml takes over for
+# daily updates.
+#
+# Runs on GitHub's runners so the 1.1 GB transfer is server-to-server,
+# not over your home/office connection.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Mirror clone from upstream
+        run: |
+          git clone --mirror https://gitlab.com/kicad/code/kicad.git /tmp/upstream.git
+          du -sh /tmp/upstream.git
+
+      - name: Push everything to origin
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd /tmp/upstream.git
+          git push --force --all https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git
+          git push --force --tags https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git
+
+      - name: Report
+        run: |
+          echo "Initial mirror complete. master should now exist on this repo."
+          echo "Next: sync-upstream.yml runs daily at 06:00 UTC."

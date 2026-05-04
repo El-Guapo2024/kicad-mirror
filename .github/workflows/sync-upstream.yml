@@ -1,0 +1,51 @@
+name: Sync upstream KiCad master
+
+# Mirrors gitlab.com/kicad/code/kicad master into this repo's master.
+# Runs daily and on manual dispatch. Force-pushes — master is intended
+# to be a pure mirror, never modified directly. Local additions live
+# on the main branch (this workflow file, Dockerfile, README).
+
+on:
+  schedule:
+    - cron: '0 6 * * *'  # 06:00 UTC daily
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout master with full history
+        uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Add upstream remote and fetch
+        run: |
+          git remote add upstream https://gitlab.com/kicad/code/kicad.git
+          git fetch upstream master --tags
+
+      - name: Show divergence
+        run: |
+          echo "=== Local master HEAD ==="
+          git log -1 --oneline origin/master
+          echo "=== Upstream master HEAD ==="
+          git log -1 --oneline upstream/master
+          echo "=== Commits behind upstream ==="
+          git rev-list --count origin/master..upstream/master
+
+      - name: Fast-forward master to upstream
+        run: |
+          git checkout master
+          git reset --hard upstream/master
+          git push origin master --force-with-lease
+
+      - name: Push tags
+        run: |
+          git push origin --tags --force
