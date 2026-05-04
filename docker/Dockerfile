@@ -32,11 +32,22 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         curl \
         git \
         gnupg \
-        protobuf-compiler libprotobuf-dev \
         python3 python3-pip python3-venv \
         software-properties-common \
+        unzip \
         wget \
     && rm -rf /var/lib/apt/lists/*
+
+# ─── Modern protoc (29.x) — Ubuntu 24.04's 3.21 is too old for kipy ──
+# kipy's runtime targets protobuf 5.29.x; that requires protoc 25+
+# (gencode 5). Download the official prebuilt binary.
+RUN PROTOC_VERSION=29.6 && \
+    curl -sSL -o /tmp/protoc.zip \
+        "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip" && \
+    unzip -q /tmp/protoc.zip -d /usr/local && \
+    rm /tmp/protoc.zip && \
+    chmod +x /usr/local/bin/protoc && \
+    protoc --version
 
 # ─── KiCad nightly from official PPA (KICAD_IPC_API=ON by default) ──
 # The kicad-nightly metapackage pulls all of KiCad's runtime
@@ -89,6 +100,10 @@ RUN git clone --depth 1 https://gitlab.com/kicad/code/kicad-python.git /opt/kica
 
 # ─── Runtime defaults ───────────────────────────────────────────────
 WORKDIR /workspace
+
+# kicad-nightly installs editor binaries (eeschema, pcbnew, kicad-cli)
+# under its private prefix; add to PATH so they're on the standard PATH.
+ENV PATH="/usr/lib/kicad-nightly/bin:${PATH}"
 
 # Override KICAD_API_SOCKET if running multiple instances side-by-side
 ENV KICAD_API_SOCKET=ipc:///tmp/kicad/api.sock
