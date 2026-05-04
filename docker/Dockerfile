@@ -28,54 +28,41 @@ FROM ubuntu:24.04 AS base
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        build-essential \
-        cmake \
-        ninja-build \
-        git \
-        pkg-config \
-        software-properties-common \
         ca-certificates \
         curl \
+        git \
+        gnupg \
+        protobuf-compiler libprotobuf-dev \
+        python3 python3-pip python3-venv \
+        software-properties-common \
         wget \
     && rm -rf /var/lib/apt/lists/*
 
-# ─── KiCad runtime + build deps ─────────────────────────────────────
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        libwxgtk3.2-dev libwxgtk-webview3.2-dev \
-        libnng-dev \
-        libssl-dev \
-        libboost-all-dev \
-        libcairo2-dev \
-        libcurl4-openssl-dev \
-        libglew-dev \
-        libglm-dev \
-        libgtk-3-dev \
-        libngspice0-dev \
-        libocct-foundation-dev libocct-data-exchange-dev \
-        libpython3-dev \
-        libsecret-1-dev \
-        libudev-dev \
-        libunit-test++-dev \
-        libwebkit2gtk-4.1-dev \
-        protobuf-compiler libprotobuf-dev \
-        python3 python3-pip python3-venv \
-        swig \
-        zlib1g-dev \
-    && rm -rf /var/lib/apt/lists/*
-
 # ─── KiCad nightly from official PPA (KICAD_IPC_API=ON by default) ──
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends gnupg && \
-    add-apt-repository -y ppa:kicad/kicad-dev-nightly && \
+# The kicad-nightly metapackage pulls all of KiCad's runtime
+# dependencies (wxWidgets, ngspice, OCC, etc.) automatically.
+RUN add-apt-repository -y ppa:kicad/kicad-dev-nightly && \
     apt-get update && \
     apt-get install -y --no-install-recommends kicad-nightly && \
     rm -rf /var/lib/apt/lists/*
 
-# ─── KiCad source build (commented; uncomment when working A.6.3) ───
-# To build KiCad from this mirror's master branch (e.g. to test our
-# own C++ patches before opening MRs upstream), uncomment the block
-# below, ensure the build context contains the mirror checkout, and
-# rebuild. Adds ~30-60 min to the image build.
+# ─── (Optional) KiCad source build deps + build step ────────────────
+# Uncomment the block below when you need to build KiCad from this
+# mirror's master branch (e.g. to test our own C++ patches before
+# opening MRs upstream — Track A.6.3). Adds ~30-60 min build time
+# and ~5 GB disk for build artifacts.
+#
+# RUN apt-get update && apt-get install -y --no-install-recommends \
+#         build-essential cmake ninja-build pkg-config swig \
+#         libboost-all-dev libcairo2-dev libcurl4-openssl-dev \
+#         libglew-dev libglm-dev libgtk-3-dev \
+#         libngspice0-dev libnng-dev \
+#         libocct-foundation-dev libocct-data-exchange-dev \
+#         libpython3-dev libsecret-1-dev libssl-dev libudev-dev \
+#         libwebkit2gtk-4.1-dev libwxgtk3.2-dev libwxgtk-webview3.2-dev \
+#         unittest++ libunittest++-dev \
+#         zlib1g-dev \
+#     && rm -rf /var/lib/apt/lists/*
 #
 # COPY . /src/kicad
 # WORKDIR /src/kicad
