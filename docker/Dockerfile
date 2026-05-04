@@ -1,22 +1,27 @@
-# KiCad development image — built from this mirror's master branch.
+# KiCad development image — runnable KiCad + kicad-python.
 #
 # Provides:
-#   - Ubuntu 24.04 with KiCad's full build deps
+#   - Ubuntu 24.04 with KiCad nightly installed from the official
+#     KiCad PPA (KICAD_IPC_API=ON enabled in upstream nightly builds)
+#   - Full C++ build deps so this image is also usable for building
+#     KiCad from source when working on C++ patches (A.6.3)
 #   - kicad-python from gitlab main (has the Schematic module
 #     PyPI 0.6.0 lacks; pinned via submodule for reproducibility)
-#   - Optional KiCad-from-source build (uncomment block below) with
-#     KICAD_IPC_API=ON
 #
 # Build:
 #   docker build -t kicad-dev:latest -f docker/Dockerfile .
 #
 # Run with X11 forwarding (mac via XQuartz, Linux native):
 #   docker run --rm -it \
-#     -e DISPLAY=$DISPLAY \
+#     -e DISPLAY=host.docker.internal:0 \
 #     -v /tmp/.X11-unix:/tmp/.X11-unix \
 #     -v /tmp/kicad:/tmp/kicad \
 #     -v $(pwd):/workspace \
 #     kicad-dev:latest
+#
+# Inside the container:
+#   kicad-nightly &                    # launch KiCad GUI (X11-forwarded)
+#   python3 -c 'import kipy; print(kipy.KiCad().get_version())'
 
 FROM ubuntu:24.04 AS base
 
@@ -58,9 +63,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# ─── KiCad source build (commented; uncomment when needed) ──────────
-# To build KiCad itself inside the image, uncomment the COPY/cmake
-# block below and rebuild. Adds ~30-60 min to the image build.
+# ─── KiCad nightly from official PPA (KICAD_IPC_API=ON by default) ──
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends gnupg && \
+    add-apt-repository -y ppa:kicad/kicad-dev-nightly && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends kicad-nightly && \
+    rm -rf /var/lib/apt/lists/*
+
+# ─── KiCad source build (commented; uncomment when working A.6.3) ───
+# To build KiCad from this mirror's master branch (e.g. to test our
+# own C++ patches before opening MRs upstream), uncomment the block
+# below, ensure the build context contains the mirror checkout, and
+# rebuild. Adds ~30-60 min to the image build.
 #
 # COPY . /src/kicad
 # WORKDIR /src/kicad
@@ -69,7 +84,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 #         -DCMAKE_BUILD_TYPE=Release \
 #         -DKICAD_IPC_API=ON \
 #         -DKICAD_USE_NNG=ON \
-#         -DCMAKE_INSTALL_PREFIX=/opt/kicad && \
+#         -DCMAKE_INSTALL_PREFIX=/opt/kicad-fork && \
 #     ninja && ninja install
 
 # ─── Python deps for kicad-python ───────────────────────────────────
