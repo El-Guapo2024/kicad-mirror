@@ -22,7 +22,10 @@ jobs:
 
     env:
       CHUNK_SIZE: 5000  # commits per push batch
-      REMOTE_URL: https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+      # MIRROR_PAT must have `repo` + `workflow` scopes — upstream KiCad
+      # contains .github/workflows/* files which GITHUB_TOKEN refuses to
+      # push without explicit workflow permission.
+      REMOTE_URL: https://x-access-token:${{ secrets.MIRROR_PAT }}@github.com/${{ github.repository }}.git
 
     steps:
       - name: Mirror clone from upstream

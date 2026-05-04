@@ -24,7 +24,9 @@ jobs:
         with:
           ref: master
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          # MIRROR_PAT needs `workflow` scope so subsequent pushes that
+          # touch upstream's .github/workflows/* files don't get rejected.
+          token: ${{ secrets.MIRROR_PAT }}
 
       - name: Add upstream remote and fetch
         run: |
