@@ -92,10 +92,23 @@ RUN python3 -m pip install --break-system-packages --no-cache-dir \
         'mypy-protobuf==3.6.*' \
         'protoletariat==3.3.*'
 
-# kicad-python from gitlab main (PyPI 0.6.0 lacks the Schematic module)
+# kicad-python from gitlab main (PyPI 0.6.0 lacks the Schematic module).
+# Workaround: kipy/proto/schematic/__init__.py is missing from the
+# kicad-python repo (every other proto subdir has one). Without it,
+# pip install skips the schematic dir and `from kipy.schematic import
+# Schematic` raises ModuleNotFoundError. Create the missing file
+# before pip install so the wheel includes it.
 RUN git clone --depth 1 https://gitlab.com/kicad/code/kicad-python.git /opt/kicad-python && \
     cd /opt/kicad-python && \
     git submodule update --init --recursive --depth 1 && \
+    mkdir -p kipy/proto/schematic && \
+    cat > kipy/proto/schematic/__init__.py <<'EOF'
+# Workaround for missing __init__.py upstream — see Dockerfile.
+# flake8: noqa
+from .schematic_types_pb2 import *
+from .schematic_jobs_pb2 import *
+from .schematic_commands_pb2 import *
+EOF
     python3 -m pip install --break-system-packages --no-cache-dir --no-deps .
 
 # ─── Runtime defaults ───────────────────────────────────────────────
