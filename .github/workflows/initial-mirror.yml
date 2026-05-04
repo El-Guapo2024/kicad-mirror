@@ -1,12 +1,13 @@
 name: Initial mirror from upstream
 
 # One-shot bootstrap: clones gitlab.com/kicad/code/kicad in full and
-# force-pushes to this repo's master + all tags. Use once when setting
-# up the mirror. After this runs, sync-upstream.yml takes over for
-# daily updates.
+# pushes it to this repo's master in chunks (GitHub's HTTPS push has
+# a soft limit around ~2 GB per push, so a single 1.1 GB push of
+# 54k commits intermittently 500s out). Pushes commits in batches of
+# 5000, with HTTP/1.1 forced to avoid HTTP/2-related timeouts.
 #
-# Runs on GitHub's runners so the 1.1 GB transfer is server-to-server,
-# not over your home/office connection.
+# Trigger once via Actions UI; disable afterward. Daily updates use
+# sync-upstream.yml.
 
 on:
   workflow_dispatch:
@@ -17,21 +18,59 @@ permissions:
 jobs:
   mirror:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
+
+    env:
+      CHUNK_SIZE: 5000  # commits per push batch
+      REMOTE_URL: https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
 
     steps:
       - name: Mirror clone from upstream
         run: |
           git clone --mirror https://gitlab.com/kicad/code/kicad.git /tmp/upstream.git
           du -sh /tmp/upstream.git
+          cd /tmp/upstream.git
+          echo "Total commits on master: $(git rev-list --count master)"
 
-      - name: Push everything to origin
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Configure git for big pushes
         run: |
           cd /tmp/upstream.git
-          git push --force --all https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git
-          git push --force --tags https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git
+          git config http.postBuffer 524288000        # 500 MB
+          git config http.version HTTP/1.1            # avoid HTTP/2 timeouts
+          git config pack.windowMemory 100m
+          git config pack.packSizeLimit 100m
+          git config core.compression 0               # disable client-side recompression
+
+      - name: Push master in chunks
+        run: |
+          cd /tmp/upstream.git
+          set -e
+
+          # Build list of chunk-boundary commits, oldest first
+          mapfile -t commits < <(git rev-list --reverse master | awk -v step="$CHUNK_SIZE" 'NR == 1 || NR % step == 0')
+          echo "Will push ${#commits[@]} chunks"
+
+          for i in "${!commits[@]}"; do
+              c="${commits[$i]}"
+              n=$((i + 1))
+              total="${#commits[@]}"
+              echo "=== Pushing chunk $n/$total to commit $c ==="
+              # Force-push the branch up to this commit; sets up shared ancestry
+              # so the next push can be a thin pack.
+              git push --force "$REMOTE_URL" "$c:refs/heads/master" \
+                  || git push --force "$REMOTE_URL" "$c:refs/heads/master" \
+                  || git push --force "$REMOTE_URL" "$c:refs/heads/master"
+          done
+
+          # Final push: HEAD of master
+          echo "=== Final push: master HEAD ==="
+          git push --force "$REMOTE_URL" master:refs/heads/master
+
+      - name: Push tags (best-effort)
+        continue-on-error: true
+        run: |
+          cd /tmp/upstream.git
+          git push --force "$REMOTE_URL" --tags
 
       - name: Report
         run: |
