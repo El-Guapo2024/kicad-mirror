@@ -1073,6 +1073,26 @@ std::set<std::pair<SCH_SHEET_PATH, SCH_ITEM*>> CONNECTION_GRAPH::ExtractAffected
         aSubgraph->getAllConnectedItems( retvals, subgraphs );
     };
 
+    auto scan_subgraphs = [&traverse_subgraph]( const std::vector<CONNECTION_SUBGRAPH*>& aScanList )
+    {
+        for( CONNECTION_SUBGRAPH* sg : aScanList )
+        {
+            traverse_subgraph( sg );
+
+            for( auto& bus_it : sg->m_bus_neighbors )
+            {
+                for( CONNECTION_SUBGRAPH* bus_sg : bus_it.second )
+                    traverse_subgraph( bus_sg );
+            }
+
+            for( auto& bus_it : sg->m_bus_parents )
+            {
+                for( CONNECTION_SUBGRAPH* bus_sg : bus_it.second )
+                    traverse_subgraph( bus_sg );
+            }
+        }
+    };
+
     auto extract_element = [&]( SCH_ITEM* aItem )
     {
         CONNECTION_SUBGRAPH* item_sg = GetSubgraphForItem( aItem );
@@ -1081,6 +1101,12 @@ std::set<std::pair<SCH_SHEET_PATH, SCH_ITEM*>> CONNECTION_GRAPH::ExtractAffected
         {
             wxLogTrace( ConnTrace, wxT( "Item %s not found in connection graph" ),
                         aItem->GetTypeDesc() );
+
+            // A label names the net it joins, so a freshly placed one sits in no subgraph yet but
+            // still has to drag that net's other subgraphs into the rebuild
+            if( aItem->HasCachedDriverName() )
+                scan_subgraphs( GetAllSubgraphs( aItem->GetCachedDriverName() ) );
+
             return;
         }
 
@@ -1105,22 +1131,7 @@ std::set<std::pair<SCH_SHEET_PATH, SCH_ITEM*>> CONNECTION_GRAPH::ExtractAffected
                     aItem->GetTypeDesc(), item_sg->m_code, item_sg->GetNetName(),
                     sg_to_scan.size() );
 
-        for( CONNECTION_SUBGRAPH* sg : sg_to_scan )
-        {
-            traverse_subgraph( sg );
-
-            for( auto& bus_it : sg->m_bus_neighbors )
-            {
-                for( CONNECTION_SUBGRAPH* bus_sg : bus_it.second )
-                    traverse_subgraph( bus_sg );
-            }
-
-            for( auto& bus_it : sg->m_bus_parents )
-            {
-                for( CONNECTION_SUBGRAPH* bus_sg : bus_it.second )
-                    traverse_subgraph( bus_sg );
-            }
-        }
+        scan_subgraphs( sg_to_scan );
 
         std::erase( m_items, aItem );
     };

@@ -258,3 +258,96 @@ BOOST_FIXTURE_TEST_CASE( SharedSheetUpdatePinsNoDanglingDriver, CONNECTIVITY_TES
                                           << " still referenced by a retained subgraph" );
     }
 }
+
+
+// Reproducer for issue 16836.  A global label joining a local net to an existing multi-sheet net
+// used to rebuild only its own sheet, and the merge then dropped the rest of the net
+BOOST_FIXTURE_TEST_CASE( IncrementalMergeKeepsOtherSheetsOnNet, CONNECTIVITY_TEST_FIXTURE )
+{
+    LOCALE_IO dummy;
+
+    KI_TEST::LoadSchematic( m_settingsManager, wxT( "issue16836/issue16836" ), m_schematic );
+
+    CONNECTION_GRAPH* graph = m_schematic->ConnectionGraph();
+    SCH_SHEET_LIST    sheets = m_schematic->BuildSheetListSortedByPageNumbers();
+
+    const wxString globalNet = wxT( "+12V" );
+    const wxString localNet = wxT( "local_label_on_page7" );
+
+    auto sheetsOnNet =
+            [&]( const wxString& aNetName )
+            {
+                std::set<wxString> paths;
+
+                for( const CONNECTION_SUBGRAPH* sg : graph->GetAllSubgraphs( aNetName ) )
+                    paths.insert( sg->GetSheet().PathAsString() );
+
+                return paths;
+            };
+
+    const std::set<wxString> before = sheetsOnNet( globalNet );
+
+    BOOST_REQUIRE_MESSAGE( before.size() > 1,
+                           "Fixture net " << globalNet.ToStdString() << " must span several sheets" );
+
+    // The reporter left a free-standing local label on the page they edited, so dropping a global
+    // label onto it reproduces their step without guessing at geometry
+    SCH_LABEL*     localLabel = nullptr;
+    SCH_SHEET_PATH localPath;
+
+    for( const SCH_SHEET_PATH& path : sheets )
+    {
+        for( SCH_ITEM* item : path.LastScreen()->Items().OfType( SCH_LABEL_T ) )
+        {
+            if( static_cast<SCH_LABEL*>( item )->GetText() == localNet )
+            {
+                localLabel = static_cast<SCH_LABEL*>( item );
+                localPath = path;
+            }
+        }
+    }
+
+    BOOST_REQUIRE_MESSAGE( localLabel, "Fixture must carry the local label from the issue report" );
+
+    SCH_GLOBALLABEL* newLabel = new SCH_GLOBALLABEL( localLabel->GetPosition(), globalNet );
+    localPath.LastScreen()->Append( newLabel );
+
+    // Mirror the incremental branch of SCHEMATIC::RecalculateConnections()
+    std::set<SCH_ITEM*> changed = { newLabel, localLabel };
+
+    std::set<std::pair<SCH_SHEET_PATH, SCH_ITEM*>> affected = graph->ExtractAffectedItems( changed );
+
+    affected.insert( { localPath, newLabel } );
+    affected.insert( { localPath, localLabel } );
+
+    for( const auto& [path, item] : affected )
+        item->SetConnectivityDirty();
+
+    CONNECTION_GRAPH new_graph( m_schematic.get() );
+    new_graph.SetLastCodes( graph );
+    new_graph.Recalculate( sheets, false );
+    graph->Merge( new_graph );
+
+    const std::set<wxString> after = sheetsOnNet( globalNet );
+
+    for( const wxString& path : before )
+    {
+        BOOST_CHECK_MESSAGE( after.count( path ),
+                             "Sheet " << path.ToStdString() << " dropped from net "
+                                      << globalNet.ToStdString() << " (" << before.size() << " -> "
+                                      << after.size() << " sheets)" );
+    }
+
+    // Rebuilding only part of the net would also leave the survivors on their old net code, which
+    // splits the net for every consumer of GetNetMap()
+    std::set<int> codes;
+
+    for( const auto& [key, subgraphs] : graph->GetNetMap() )
+    {
+        if( key.Name == globalNet )
+            codes.insert( key.Netcode );
+    }
+
+    BOOST_CHECK_MESSAGE( codes.size() == 1, "Net " << globalNet.ToStdString() << " split across "
+                                                   << codes.size() << " net codes" );
+}
