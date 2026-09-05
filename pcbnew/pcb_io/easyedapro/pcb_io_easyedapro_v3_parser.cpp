@@ -266,8 +266,9 @@ PCB_TEXT* PCB_IO_EASYEDAPRO_V3_PARSER::createV3Text( BOARD_ITEM_CONTAINER*     a
 }
 
 
-FOOTPRINT* PCB_IO_EASYEDAPRO_V3_PARSER::ParseFootprint( const std::map<wxString, EASYEDAPRO::BLOB>& aBlobMap,
-                                                        const V3_DOC_RAW&                           aDoc )
+std::unique_ptr<FOOTPRINT>
+PCB_IO_EASYEDAPRO_V3_PARSER::ParseFootprint( const std::map<wxString, EASYEDAPRO::BLOB>& aBlobMap,
+                                             const V3_DOC_RAW&                           aDoc )
 {
     std::unique_ptr<FOOTPRINT> footprintPtr = std::make_unique<FOOTPRINT>( m_board );
     FOOTPRINT*                 footprint = footprintPtr.get();
@@ -669,7 +670,7 @@ FOOTPRINT* PCB_IO_EASYEDAPRO_V3_PARSER::ParseFootprint( const std::map<wxString,
         footprint->Add( refText.release(), ADD_MODE::APPEND );
     }
 
-    return footprintPtr.release();
+    return footprintPtr;
 }
 
 

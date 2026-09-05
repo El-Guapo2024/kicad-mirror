@@ -174,7 +174,7 @@ public:
     BOARD* CreateBoard( std::map<wxString, std::unique_ptr<FOOTPRINT>>& aFootprintMap, size_t aBoardIndex = 0 );
 
     // Create a single FOOTPRINT from the board at index 0
-    FOOTPRINT* CreateFootprint();
+    std::unique_ptr<FOOTPRINT> CreateFootprint();
 
     const SPRINT_LAYOUT::FILE_DATA& GetFileData() const { return m_fileData; }
 

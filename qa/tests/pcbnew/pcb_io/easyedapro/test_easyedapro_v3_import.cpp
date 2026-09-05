@@ -103,8 +103,8 @@ BOOST_AUTO_TEST_CASE( FootprintLibraryEnumeratesAndLoadsElibz2 )
     BOOST_REQUIRE_EQUAL( footprintNames.GetCount(), 1 );
     BOOST_CHECK_EQUAL( footprintNames[0], wxString( wxS( "BGA-286_17x17_12.0x12.0mm" ) ) );
 
-    std::unique_ptr<FOOTPRINT> footprint(
-            plugin->FootprintLoad( getEasyEdaProV3FootprintLibPath(), wxS( "BGA-286_17x17_12.0x12.0mm" ) ) );
+    std::unique_ptr<FOOTPRINT> footprint =
+            plugin->FootprintLoad( getEasyEdaProV3FootprintLibPath(), wxS( "BGA-286_17x17_12.0x12.0mm" ) );
 
     BOOST_REQUIRE( footprint );
     BOOST_CHECK_EQUAL( footprint->GetFPID().GetLibItemName(), UTF8( "BGA-286_17x17_12.0x12.0mm" ) );

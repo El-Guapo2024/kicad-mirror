@@ -349,12 +349,13 @@ FOOTPRINT* FOOTPRINT_LIBRARY_ADAPTER::LoadFootprint( const wxString& aNickname, 
         {
             std::lock_guard pluginGuard( pluginMutex( aNickname ) );
 
-            if( FOOTPRINT* footprint = pcbplugin( *lib )->FootprintLoad( getUri( ( *lib )->row ), aName, aKeepUUID ) )
+            if( std::unique_ptr<FOOTPRINT> footprint =
+                        pcbplugin( *lib )->FootprintLoad( getUri( ( *lib )->row ), aName, aKeepUUID ) )
             {
                 LIB_ID id = footprint->GetFPID();
                 id.SetLibNickname( ( *lib )->row->Nickname() );
                 footprint->SetFPID( id );
-                return footprint;
+                return footprint.release();
             }
         }
         catch( const IO_ERROR& ioe )
@@ -409,13 +410,11 @@ FOOTPRINT_LIBRARY_ADAPTER::SAVE_T FOOTPRINT_LIBRARY_ADAPTER::SaveFootprint( cons
 
             try
             {
-                FOOTPRINT* existing = pcbplugin( *lib )->FootprintLoad( getUri( ( *lib )->row ), fpname, false );
+                std::unique_ptr<FOOTPRINT> existing =
+                        pcbplugin( *lib )->FootprintLoad( getUri( ( *lib )->row ), fpname, false );
 
                 if( existing )
-                {
-                    delete existing;
                     return SAVE_SKIPPED;
-                }
             }
             catch( IO_ERROR& e )
             {

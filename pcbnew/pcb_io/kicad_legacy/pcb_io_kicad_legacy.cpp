@@ -3291,9 +3291,9 @@ void PCB_IO_KICAD_LEGACY::FootprintEnumerate( wxArrayString& aFootprintNames, co
 }
 
 
-FOOTPRINT* PCB_IO_KICAD_LEGACY::FootprintLoad( const wxString& aLibraryPath,
-                                               const wxString& aFootprintName, bool aKeepUUID,
-                                               const std::map<std::string, UTF8>* aProperties )
+std::unique_ptr<FOOTPRINT> PCB_IO_KICAD_LEGACY::FootprintLoad( const wxString& aLibraryPath,
+                                                               const wxString& aFootprintName, bool aKeepUUID,
+                                                               const std::map<std::string, UTF8>* aProperties )
 {
     init( aProperties );
 
@@ -3306,7 +3306,7 @@ FOOTPRINT* PCB_IO_KICAD_LEGACY::FootprintLoad( const wxString& aLibraryPath,
         return nullptr;
 
     // Return copy of already loaded FOOTPRINT
-    FOOTPRINT* copy = (FOOTPRINT*) it->second->Duplicate( IGNORE_PARENT_GROUP );
+    std::unique_ptr<FOOTPRINT> copy( static_cast<FOOTPRINT*>( it->second->Duplicate( IGNORE_PARENT_GROUP ) ) );
     copy->SetParent( nullptr );
     return copy;
 }

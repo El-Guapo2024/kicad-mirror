@@ -69,8 +69,9 @@ void PCB_IO_SPRINT_LAYOUT::FootprintEnumerate( wxArrayString& aFootprintNames, c
 }
 
 
-FOOTPRINT* PCB_IO_SPRINT_LAYOUT::FootprintLoad( const wxString& aLibraryPath, const wxString& aFootprintName,
-                                                bool aKeepUUID, const std::map<std::string, UTF8>* aProperties )
+std::unique_ptr<FOOTPRINT> PCB_IO_SPRINT_LAYOUT::FootprintLoad( const wxString& aLibraryPath,
+                                                                const wxString& aFootprintName, bool aKeepUUID,
+                                                                const std::map<std::string, UTF8>* aProperties )
 {
     wxFileName libFn( aLibraryPath );
     wxFileName lmkPath;

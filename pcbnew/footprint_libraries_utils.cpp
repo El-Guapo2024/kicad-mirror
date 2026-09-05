@@ -183,8 +183,8 @@ FOOTPRINT* FOOTPRINT_EDIT_FRAME::ImportFootprint( const wxString& aName )
         return nullptr;
     }
 
-    FOOTPRINT* footprint = nullptr;
-    wxString   footprintName;
+    std::unique_ptr<FOOTPRINT> footprint;
+    wxString                   footprintName;
 
     try
     {
@@ -194,7 +194,7 @@ FOOTPRINT* FOOTPRINT_EDIT_FRAME::ImportFootprint( const wxString& aName )
         // relying on a reporter that only the board loader would have attached.
         pi->SetReporter( &WXLOG_REPORTER::GetInstance() );
 
-        footprint = pi->ImportFootprint( fn.GetFullPath(), footprintName);
+        footprint = pi->ImportFootprint( fn.GetFullPath(), footprintName );
 
         if( !footprint )
         {
@@ -229,14 +229,17 @@ FOOTPRINT* FOOTPRINT_EDIT_FRAME::ImportFootprint( const wxString& aName )
         createUnsavedFootprintTab();
     }
 
+    // AddFootprintToBoard takes ownership of the footprint from here on
+    FOOTPRINT* fp = footprint.get();
+
     // Insert footprint in list
-    AddFootprintToBoard( footprint );
+    AddFootprintToBoard( footprint.release() );
 
     // Display info :
-    SetMsgPanel( footprint );
-    PlaceFootprint( footprint );
+    SetMsgPanel( fp );
+    PlaceFootprint( fp );
 
-    footprint->SetPosition( VECTOR2I( 0, 0 ) );
+    fp->SetPosition( VECTOR2I( 0, 0 ) );
 
     GetBoard()->BuildListOfNets();
     UpdateView();
@@ -246,7 +249,7 @@ FOOTPRINT* FOOTPRINT_EDIT_FRAME::ImportFootprint( const wxString& aName )
     if( m_tabsPanel )
         OnModify();
 
-    return footprint;
+    return fp;
 }
 
 

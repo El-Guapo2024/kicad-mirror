@@ -851,9 +851,8 @@ void PCB_IO_GEDA::validateCache( const wxString& aLibraryPath, bool checkModifie
 }
 
 
-FOOTPRINT* PCB_IO_GEDA::ImportFootprint( const wxString&        aFootprintPath,
-                                         wxString&              aFootprintNameOut,
-                                         const std::map<std::string, UTF8>* aProperties )
+std::unique_ptr<FOOTPRINT> PCB_IO_GEDA::ImportFootprint( const wxString& aFootprintPath, wxString& aFootprintNameOut,
+                                                         const std::map<std::string, UTF8>* aProperties )
 {
     wxFileName fn( aFootprintPath );
 
@@ -929,10 +928,8 @@ const FOOTPRINT* PCB_IO_GEDA::getFootprint( const wxString& aLibraryPath,
 }
 
 
-FOOTPRINT* PCB_IO_GEDA::FootprintLoad( const wxString& aLibraryPath,
-                                       const wxString& aFootprintName,
-                                       bool  aKeepUUID,
-                                       const std::map<std::string, UTF8>* aProperties )
+std::unique_ptr<FOOTPRINT> PCB_IO_GEDA::FootprintLoad( const wxString& aLibraryPath, const wxString& aFootprintName,
+                                                       bool aKeepUUID, const std::map<std::string, UTF8>* aProperties )
 {
     // Suppress font substitution warnings (RAII - automatically restored on scope exit)
     FONTCONFIG_REPORTER_SCOPE fontconfigScope( nullptr );
@@ -941,7 +938,7 @@ FOOTPRINT* PCB_IO_GEDA::FootprintLoad( const wxString& aLibraryPath,
 
     if( footprint )
     {
-        FOOTPRINT* copy = (FOOTPRINT*) footprint->Duplicate( IGNORE_PARENT_GROUP );
+        std::unique_ptr<FOOTPRINT> copy( static_cast<FOOTPRINT*>( footprint->Duplicate( IGNORE_PARENT_GROUP ) ) );
         copy->SetParent( nullptr );
         return copy;
     }

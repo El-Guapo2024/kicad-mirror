@@ -4262,7 +4262,7 @@ int PCBNEW_JOBS_HANDLER::OpenDiffDialog( KICAD_DIFF::DOC_KIND aKind, const wxStr
         // keys by basename), matching runFpLibMerge's single-file path.
         PCB_IO_KICAD_SEXPR io;
         wxString           name;
-        return std::unique_ptr<FOOTPRINT>( io.ImportFootprint( fn.GetFullPath(), name ) );
+        return io.ImportFootprint( fn.GetFullPath(), name );
     };
 
     switch( aKind )
@@ -4456,7 +4456,7 @@ int PCBNEW_JOBS_HANDLER::runFpLibMerge( const wxString& aAncestor, const wxStrin
             {
                 PCB_IO_KICAD_SEXPR         io;
                 wxString                   name;
-                std::unique_ptr<FOOTPRINT> fp( io.ImportFootprint( aPath, name ) );
+                std::unique_ptr<FOOTPRINT> fp = io.ImportFootprint( aPath, name );
 
                 if( !fp )
                     return CLI::EXIT_CODES::ERR_INVALID_INPUT_FILE;

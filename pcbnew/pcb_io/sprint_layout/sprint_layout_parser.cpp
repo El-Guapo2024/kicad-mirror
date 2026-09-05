@@ -27,6 +27,7 @@
 #include <board_item_container.h>
 #include <board_design_settings.h>
 #include <footprint.h>
+#include <memory>
 #include <netinfo.h>
 #include <pad.h>
 #include <pcb_group.h>
@@ -1072,7 +1073,7 @@ BOARD* SPRINT_LAYOUT_PARSER::CreateBoard( std::map<wxString, std::unique_ptr<FOO
 }
 
 
-FOOTPRINT* SPRINT_LAYOUT_PARSER::CreateFootprint()
+std::unique_ptr<FOOTPRINT> SPRINT_LAYOUT_PARSER::CreateFootprint()
 {
     if( m_fileData.boards.empty() )
         return nullptr;
@@ -1096,7 +1097,7 @@ FOOTPRINT* SPRINT_LAYOUT_PARSER::CreateFootprint()
     for( const SPRINT_LAYOUT::OBJECT& obj : boardData.objects )
     {
         BOARD_ITEM_CONTAINER* container = fp.get();
-        
+
         // clang-format off
         switch( obj.type )
         {
@@ -1148,7 +1149,7 @@ FOOTPRINT* SPRINT_LAYOUT_PARSER::CreateFootprint()
 
     fp->Add( shape.release(), ADD_MODE::APPEND );
 
-    return fp.release();
+    return fp;
 }
 
 
@@ -1262,13 +1263,13 @@ void SPRINT_LAYOUT_PARSER::processPad( BOARD_ITEM_CONTAINER* aContainer, const S
         {
         case SPRINT_LAYOUT::THT_SHAPE_H_ROUND:
         case SPRINT_LAYOUT::THT_SHAPE_H_CHAMFER:
-        case SPRINT_LAYOUT::THT_SHAPE_H_RECT: 
+        case SPRINT_LAYOUT::THT_SHAPE_H_RECT:
             padSize.x *= 2;
             break;
 
         case SPRINT_LAYOUT::THT_SHAPE_V_ROUND:
         case SPRINT_LAYOUT::THT_SHAPE_V_CHAMFER:
-        case SPRINT_LAYOUT::THT_SHAPE_V_RECT: 
+        case SPRINT_LAYOUT::THT_SHAPE_V_RECT:
             padSize.y *= 2;
             break;
 
@@ -1362,7 +1363,7 @@ void SPRINT_LAYOUT_PARSER::processPad( BOARD_ITEM_CONTAINER* aContainer, const S
     {
         int spokeWidth = aObj.rotation * 10000 / 2;
         pad->SetLocalThermalSpokeWidthOverride( spokeWidth );
-        
+
         // Each byte is the spoke directions for one copper layer (C1, C2, I1, I2).
         // 0x55 matches H/V directions, 0xAA matches diagonal directions
         uint32_t spokeMask = static_cast<uint32_t>( aObj.start_angle );
@@ -1750,7 +1751,7 @@ void SPRINT_LAYOUT_PARSER::processText( BOARD_ITEM_CONTAINER* aContainer, const 
         return;
 
     // When inside a group, the rotation center seems to be at the group center.
-    // Just so we don't have to do a complex fixup later, use points to detect 
+    // Just so we don't have to do a complex fixup later, use points to detect
     // text center instead, they are always in absolute coordinates.
     VECTOR2I ptsCenter;
 

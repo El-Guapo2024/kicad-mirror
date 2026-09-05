@@ -363,9 +363,9 @@ void PCB_IO_EASYEDA::FootprintEnumerate( wxArrayString&  aFootprintNames,
 }
 
 
-FOOTPRINT* PCB_IO_EASYEDA::FootprintLoad( const wxString& aLibraryPath,
-                                          const wxString& aFootprintName, bool aKeepUUID,
-                                          const std::map<std::string, UTF8>* aProperties )
+std::unique_ptr<FOOTPRINT> PCB_IO_EASYEDA::FootprintLoad( const wxString& aLibraryPath, const wxString& aFootprintName,
+                                                          bool                               aKeepUUID,
+                                                          const std::map<std::string, UTF8>* aProperties )
 {
     // Suppress font substitution warnings (RAII - automatically restored on scope exit)
     FONTCONFIG_REPORTER_SCOPE fontconfigScope( nullptr );
@@ -443,8 +443,8 @@ FOOTPRINT* PCB_IO_EASYEDA::FootprintLoad( const wxString& aLibraryPath,
                     {
                         parts.RemoveAt( 0 );
 
-                        FOOTPRINT* footprint = parser.ParseFootprint( origin, orientation, layer, nullptr,
-                                                                      paramMap, m_loadedFootprints, parts );
+                        std::unique_ptr<FOOTPRINT> footprint = parser.ParseFootprint(
+                                origin, orientation, layer, nullptr, paramMap, m_loadedFootprints, parts );
 
                         if( !footprint )
                             return nullptr;
@@ -487,8 +487,8 @@ FOOTPRINT* PCB_IO_EASYEDA::FootprintLoad( const wxString& aLibraryPath,
 
                 VECTOR2D origin( doc.head.x, doc.head.y );
 
-                FOOTPRINT* footprint = parser.ParseFootprint( origin, ANGLE_0, F_Cu, nullptr, *c_para,
-                                                              m_loadedFootprints, doc.shape );
+                std::unique_ptr<FOOTPRINT> footprint( parser.ParseFootprint( origin, ANGLE_0, F_Cu, nullptr, *c_para,
+                                                                             m_loadedFootprints, doc.shape ) );
 
                 if( !footprint )
                     return nullptr;

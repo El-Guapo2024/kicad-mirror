@@ -860,8 +860,8 @@ void ALTIUM_PCB::Parse( const ALTIUM_PCB_COMPOUND_FILE&              altiumPcbFi
 }
 
 
-FOOTPRINT* ALTIUM_PCB::ParseFootprint( ALTIUM_PCB_COMPOUND_FILE& altiumLibFile,
-                                       const wxString&       aFootprintName )
+std::unique_ptr<FOOTPRINT> ALTIUM_PCB::ParseFootprint( ALTIUM_PCB_COMPOUND_FILE& altiumLibFile,
+                                                       const wxString&           aFootprintName )
 {
     std::unique_ptr<FOOTPRINT> footprint = std::make_unique<FOOTPRINT>( m_board );
 
@@ -1058,7 +1058,7 @@ FOOTPRINT* ALTIUM_PCB::ParseFootprint( ALTIUM_PCB_COMPOUND_FILE& altiumLibFile,
     if( parser.GetRemainingBytes() != 0 )
         THROW_IO_ERRORF( wxT( "%s stream is not fully parsed" ), FormatPath( streamName ) );
 
-    return footprint.release();
+    return footprint;
 }
 
 int ALTIUM_PCB::GetNetCode( uint16_t aId ) const

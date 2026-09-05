@@ -227,8 +227,8 @@ void PCB_IO_EASYEDA_PARSER::ParseToBoardItemContainer(
             parts.RemoveAt( 0 );
 
             VECTOR2D   pcbOrigin = m_relOrigin;
-            FOOTPRINT* fp = ParseFootprint( fpOrigin, orientation, layer, board, innerParamMap,
-                                            aFootprintMap, parts );
+            std::unique_ptr<FOOTPRINT> fp =
+                    ParseFootprint( fpOrigin, orientation, layer, board, innerParamMap, aFootprintMap, parts );
 
             if( !fp )
                 continue;
@@ -237,7 +237,7 @@ void PCB_IO_EASYEDA_PARSER::ParseToBoardItemContainer(
 
             fp->Move( RelPos( fpOrigin ) );
 
-            aContainer->Add( fp, ADD_MODE::APPEND );
+            aContainer->Add( fp.release(), ADD_MODE::APPEND );
         }
         else if( elType == wxS( "TRACK" ) )
         {
@@ -1075,10 +1075,11 @@ void PCB_IO_EASYEDA_PARSER::ParseToBoardItemContainer(
 }
 
 
-FOOTPRINT* PCB_IO_EASYEDA_PARSER::ParseFootprint(
-        const VECTOR2D& aOrigin, const EDA_ANGLE& aOrientation, int aLayer, BOARD* aParent,
-        std::map<wxString, wxString>                    aParams,
-        std::map<wxString, std::unique_ptr<FOOTPRINT>>& aFootprintMap, wxArrayString aShapes )
+std::unique_ptr<FOOTPRINT>
+PCB_IO_EASYEDA_PARSER::ParseFootprint( const VECTOR2D& aOrigin, const EDA_ANGLE& aOrientation, int aLayer,
+                                       BOARD* aParent, std::map<wxString, wxString> aParams,
+                                       std::map<wxString, std::unique_ptr<FOOTPRINT>>& aFootprintMap,
+                                       wxArrayString                                   aShapes )
 {
     std::unique_ptr<FOOTPRINT> footprint = std::make_unique<FOOTPRINT>( aParent );
 
@@ -1159,7 +1160,7 @@ FOOTPRINT* PCB_IO_EASYEDA_PARSER::ParseFootprint(
         footprint->Add( refText.release(), ADD_MODE::APPEND );
     }
 
-    return footprint.release();
+    return footprint;
 }
 
 

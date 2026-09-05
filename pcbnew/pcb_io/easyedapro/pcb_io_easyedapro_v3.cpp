@@ -124,8 +124,9 @@ std::vector<FOOTPRINT*> PCB_IO_EASYEDAPRO_V3::GetImportedCachedLibraryFootprints
 }
 
 
-FOOTPRINT* PCB_IO_EASYEDAPRO_V3::FootprintLoad( const wxString& aLibraryPath, const wxString& aFootprintName,
-                                                bool aKeepUUID, const std::map<std::string, UTF8>* aProperties )
+std::unique_ptr<FOOTPRINT> PCB_IO_EASYEDAPRO_V3::FootprintLoad( const wxString& aLibraryPath,
+                                                                const wxString& aFootprintName, bool aKeepUUID,
+                                                                const std::map<std::string, UTF8>* aProperties )
 {
     FONTCONFIG_REPORTER_SCOPE fontconfigScope( nullptr );
 
@@ -147,7 +148,7 @@ FOOTPRINT* PCB_IO_EASYEDAPRO_V3::FootprintLoad( const wxString& aLibraryPath, co
     const nlohmann::json& index = v3.GetLibraryIndex();
 
     PCB_IO_EASYEDAPRO_V3_PARSER parser( nullptr, nullptr );
-    FOOTPRINT*                  footprint = nullptr;
+    std::unique_ptr<FOOTPRINT>  footprint;
 
     try
     {
@@ -196,7 +197,7 @@ FOOTPRINT* PCB_IO_EASYEDAPRO_V3::FootprintLoad( const wxString& aLibraryPath, co
                 modelTransform = EASYEDAPRO::V3JsonToString( attrs.at( "3D Model Transform" ) );
 
             PCB_IO_EASYEDAPRO_PARSER modelParser( nullptr, nullptr );
-            modelParser.FillFootprintModelInfo( footprint, modelUuid, modelTitle, modelTransform );
+            modelParser.FillFootprintModelInfo( footprint.get(), modelUuid, modelTitle, modelTransform );
 
             break;
         }

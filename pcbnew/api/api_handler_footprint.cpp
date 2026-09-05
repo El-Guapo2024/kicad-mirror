@@ -91,7 +91,7 @@ tl::expected<bool, ApiResponseStatus> API_HANDLER_FOOTPRINT::validateDocumentInt
         return tl::unexpected( e );
     }
 
-    std::string actual_lib  = target_fp.GetUniStringLibNickname().ToStdString();                                                                            
+    std::string actual_lib  = target_fp.GetUniStringLibNickname().ToStdString();
     std::string actual_name = target_fp.GetUniStringLibItemName().ToStdString();
 
     if( 0 != aDocument.lib_id().library_nickname().compare( actual_lib ) )

@@ -3349,8 +3349,8 @@ void PCB_IO_EAGLE::FootprintEnumerate( wxArrayString& aFootprintNames, const wxS
 }
 
 
-FOOTPRINT* PCB_IO_EAGLE::FootprintLoad( const wxString& aLibraryPath, const wxString& aFootprintName,
-                                        bool aKeepUUID, const std::map<std::string, UTF8>* aProperties )
+std::unique_ptr<FOOTPRINT> PCB_IO_EAGLE::FootprintLoad( const wxString& aLibraryPath, const wxString& aFootprintName,
+                                                        bool aKeepUUID, const std::map<std::string, UTF8>* aProperties )
 {
     init( aProperties );
     cacheLib( aLibraryPath );
@@ -3360,7 +3360,7 @@ FOOTPRINT* PCB_IO_EAGLE::FootprintLoad( const wxString& aLibraryPath, const wxSt
         return nullptr;
 
     // Return a copy of the template
-    FOOTPRINT* copy = (FOOTPRINT*) it->second->Duplicate( IGNORE_PARENT_GROUP );
+    std::unique_ptr<FOOTPRINT> copy( static_cast<FOOTPRINT*>( it->second->Duplicate( IGNORE_PARENT_GROUP ) ) );
     copy->SetParent( nullptr );
     return copy;
 }

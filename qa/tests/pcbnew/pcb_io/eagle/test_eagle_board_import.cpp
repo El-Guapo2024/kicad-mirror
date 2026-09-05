@@ -250,7 +250,7 @@ BOOST_AUTO_TEST_CASE( UserLayerMapping )
 
     PCB_IO_EAGLE eaglePlugin;
 
-    FOOTPRINT* fp = nullptr;
+    std::unique_ptr<FOOTPRINT> fp;
 
     try
     {
@@ -264,8 +264,6 @@ BOOST_AUTO_TEST_CASE( UserLayerMapping )
     {
         BOOST_FAIL( std::string( "Exception loading Eagle footprint: " ) + e.what() );
     }
-
-    std::unique_ptr<FOOTPRINT> guard( fp );
 
     BOOST_REQUIRE( fp );
 

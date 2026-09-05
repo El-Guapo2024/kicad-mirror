@@ -164,8 +164,8 @@ public:
                 const std::map<ALTIUM_PCB_DIR, std::string>& aFileMapping,
                 const std::map<std::string, UTF8>*           aProperties = nullptr );
 
-    FOOTPRINT* ParseFootprint( ALTIUM_PCB_COMPOUND_FILE& altiumLibFile,
-                               const wxString&       aFootprintName );
+    std::unique_ptr<FOOTPRINT> ParseFootprint( ALTIUM_PCB_COMPOUND_FILE& altiumLibFile,
+                                               const wxString&           aFootprintName );
 
 private:
     void checkpoint();

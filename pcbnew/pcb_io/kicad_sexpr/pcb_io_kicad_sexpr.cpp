@@ -3760,9 +3760,9 @@ bool PCB_IO_KICAD_SEXPR::FootprintExists( const wxString& aLibraryPath,
 }
 
 
-FOOTPRINT* PCB_IO_KICAD_SEXPR::ImportFootprint( const wxString& aFootprintPath,
-                                                wxString& aFootprintNameOut,
-                                                const std::map<std::string, UTF8>* aProperties )
+std::unique_ptr<FOOTPRINT> PCB_IO_KICAD_SEXPR::ImportFootprint( const wxString&                    aFootprintPath,
+                                                                wxString&                          aFootprintNameOut,
+                                                                const std::map<std::string, UTF8>* aProperties )
 {
     wxString fcontents;
     wxFFile  f( aFootprintPath );
@@ -3777,14 +3777,13 @@ FOOTPRINT* PCB_IO_KICAD_SEXPR::ImportFootprint( const wxString& aFootprintPath,
 
     aFootprintNameOut = wxFileName( aFootprintPath ).GetName();
 
-    return dynamic_cast<FOOTPRINT*>( Parse( fcontents ) );
+    return std::unique_ptr<FOOTPRINT>( dynamic_cast<FOOTPRINT*>( Parse( fcontents ) ) );
 }
 
 
-FOOTPRINT* PCB_IO_KICAD_SEXPR::FootprintLoad( const wxString& aLibraryPath,
-                                              const wxString& aFootprintName,
-                                              bool  aKeepUUID,
-                                              const std::map<std::string, UTF8>* aProperties )
+std::unique_ptr<FOOTPRINT> PCB_IO_KICAD_SEXPR::FootprintLoad( const wxString& aLibraryPath,
+                                                              const wxString& aFootprintName, bool aKeepUUID,
+                                                              const std::map<std::string, UTF8>* aProperties )
 {
     // Suppress font substitution warnings (RAII - automatically restored on scope exit)
     FONTCONFIG_REPORTER_SCOPE fontconfigScope( nullptr );
@@ -3793,12 +3792,12 @@ FOOTPRINT* PCB_IO_KICAD_SEXPR::FootprintLoad( const wxString& aLibraryPath,
 
     if( footprint )
     {
-        FOOTPRINT* copy;
+        std::unique_ptr<FOOTPRINT> copy;
 
         if( aKeepUUID )
-            copy = static_cast<FOOTPRINT*>( footprint->Clone() );
+            copy.reset( static_cast<FOOTPRINT*>( footprint->Clone() ) );
         else
-            copy = static_cast<FOOTPRINT*>( footprint->Duplicate( IGNORE_PARENT_GROUP ) );
+            copy.reset( static_cast<FOOTPRINT*>( footprint->Duplicate( IGNORE_PARENT_GROUP ) ) );
 
         copy->SetParent( nullptr );
         return copy;

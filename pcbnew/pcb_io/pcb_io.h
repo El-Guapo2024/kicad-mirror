@@ -23,7 +23,8 @@
 #include <io/io_base.h>
 #include <pcb_io/pcb_io_mgr.h>
 
-#include <cstdint>
+#include <memory>
+
 #include <config.h>
 #include <vector>
 #include <wx/arrstr.h>
@@ -211,8 +212,8 @@ public:
      *
      * @throw   IO_ERROR if the footprint cannot be found or read.
      */
-    virtual FOOTPRINT* ImportFootprint( const wxString& aFootprintPath, wxString& aFootprintNameOut,
-                                        const std::map<std::string, UTF8>* aProperties = nullptr );
+    virtual std::unique_ptr<FOOTPRINT> ImportFootprint( const wxString& aFootprintPath, wxString& aFootprintNameOut,
+                                                        const std::map<std::string, UTF8>* aProperties = nullptr );
 
     /**
      * Load a footprint having @a aFootprintName from the @a aLibraryPath containing a library
@@ -235,22 +236,25 @@ public:
      * @throw   IO_ERROR if the library cannot be found or read.  No exception is thrown in
      *                   the case where \a aFootprintName cannot be found.
      */
-    virtual FOOTPRINT* FootprintLoad( const wxString& aLibraryPath, const wxString& aFootprintName,
-                                      bool  aKeepUUID = false,
-                                      const std::map<std::string, UTF8>* aProperties = nullptr );
+    virtual std::unique_ptr<FOOTPRINT> FootprintLoad( const wxString& aLibraryPath, const wxString& aFootprintName,
+                                                      bool                               aKeepUUID = false,
+                                                      const std::map<std::string, UTF8>* aProperties = nullptr );
 
     /**
-     * A version of FootprintLoad() for use after FootprintEnumerate() for more efficient
-     * cache management.
+     * A version of \ref FootprintLoad() for use after \ref FootprintEnumerate() for more efficient
+     * cache management in plugins that support it.
+     *
+     * Whether the returned pointer is borrowed or owned by the caller depends on the plugin.
+     * Use \ref CachesEnumeratedFootprints() to determine.
      */
     virtual const FOOTPRINT* GetEnumeratedFootprint( const wxString& aLibraryPath, const wxString& aFootprintName,
                                                      const std::map<std::string, UTF8>* aProperties = nullptr );
 
     /**
-     * Return true if GetEnumeratedFootprint() returns a borrowed pointer from an internal cache.
+     * Return true if \ref GetEnumeratedFootprint() returns a borrowed pointer from an internal cache.
      *
      * When true, the caller must NOT delete the returned pointer. When false (the default),
-     * GetEnumeratedFootprint() allocates a new FOOTPRINT and the caller owns the memory.
+     * \ref GetEnumeratedFootprint() allocates a new \ref FOOTPRINT and the caller owns the memory.
      */
     virtual bool CachesEnumeratedFootprints() const { return false; }
 

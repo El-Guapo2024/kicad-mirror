@@ -18,7 +18,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <unordered_set>
 #include <pcb_io/pcb_io.h>
 #include <pcb_io/pcb_io_mgr.h>
 #include <ki_exception.h>
@@ -26,6 +25,8 @@
 #include <wx/filename.h>
 #include <wx/translation.h>
 #include <wx/dir.h>
+
+#include <footprint.h>
 
 
 #define FMT_UNIMPLEMENTED wxT( "Plugin \"%s\" does not implement the \"%s\" function." )
@@ -96,8 +97,8 @@ void PCB_IO::FootprintEnumerate( wxArrayString& aFootprintNames, const wxString&
 }
 
 
-FOOTPRINT* PCB_IO::ImportFootprint( const wxString& aFootprintPath, wxString& aFootprintNameOut,
-                                    const std::map<std::string, UTF8>* aProperties )
+std::unique_ptr<FOOTPRINT> PCB_IO::ImportFootprint( const wxString& aFootprintPath, wxString& aFootprintNameOut,
+                                                    const std::map<std::string, UTF8>* aProperties )
 {
     wxArrayString footprintNames;
 
@@ -120,12 +121,11 @@ FOOTPRINT* PCB_IO::ImportFootprint( const wxString& aFootprintPath, wxString& aF
 }
 
 
-const FOOTPRINT* PCB_IO::GetEnumeratedFootprint( const wxString& aLibraryPath,
-                                                 const wxString& aFootprintName,
+const FOOTPRINT* PCB_IO::GetEnumeratedFootprint( const wxString& aLibraryPath, const wxString& aFootprintName,
                                                  const std::map<std::string, UTF8>* aProperties )
 {
-    // default implementation
-    return FootprintLoad( aLibraryPath, aFootprintName, false, aProperties );
+    // default implementation returns CALLER-OWNED pointer to the footprint
+    return FootprintLoad( aLibraryPath, aFootprintName, false, aProperties ).release();
 }
 
 
@@ -137,11 +137,12 @@ bool PCB_IO::FootprintExists( const wxString& aLibraryPath, const wxString& aFoo
 }
 
 
-FOOTPRINT* PCB_IO::FootprintLoad( const wxString& aLibraryPath, const wxString& aFootprintName,
-                                  bool  aKeepUUID, const std::map<std::string, UTF8>* aProperties )
+std::unique_ptr<FOOTPRINT> PCB_IO::FootprintLoad( const wxString& aLibraryPath, const wxString& aFootprintName,
+                                                  bool aKeepUUID, const std::map<std::string, UTF8>* aProperties )
 {
     // not pure virtual so that plugins only have to implement subset of the PLUGIN interface.
     NOT_IMPLEMENTED( __FUNCTION__ );
+    return nullptr;
 }
 
 

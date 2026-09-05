@@ -634,7 +634,7 @@ std::unique_ptr<PAD> PCB_IO_EASYEDAPRO_PARSER::createPAD( FOOTPRINT*            
     // Check if this pad has a real drill hole
     // JLCEDA may use ["ROUND",0,0] to indicate SMD pads
     bool hasHole = false;
-    
+
     if( !padHole.is_null() && !padHole.empty() )
     {
         wxString holeShape = padHole.at( 0 );
@@ -671,7 +671,7 @@ std::unique_ptr<PAD> PCB_IO_EASYEDAPRO_PARSER::createPAD( FOOTPRINT*            
             }
         }
     }
-    
+
     // If no valid hole, this is an SMD pad
     if( !hasHole )
     {
@@ -754,9 +754,9 @@ std::unique_ptr<PAD> PCB_IO_EASYEDAPRO_PARSER::createPAD( FOOTPRINT*            
 }
 
 
-FOOTPRINT* PCB_IO_EASYEDAPRO_PARSER::ParseFootprint( const nlohmann::json&              aProject,
-                                                     const wxString&                    aFpUuid,
-                                                     const std::vector<nlohmann::json>& aLines )
+std::unique_ptr<FOOTPRINT> PCB_IO_EASYEDAPRO_PARSER::ParseFootprint( const nlohmann::json&              aProject,
+                                                                     const wxString&                    aFpUuid,
+                                                                     const std::vector<nlohmann::json>& aLines )
 {
     std::unique_ptr<FOOTPRINT> footprintPtr = std::make_unique<FOOTPRINT>( m_board );
     FOOTPRINT*                 footprint = footprintPtr.get();
@@ -1006,7 +1006,7 @@ FOOTPRINT* PCB_IO_EASYEDAPRO_PARSER::ParseFootprint( const nlohmann::json&      
         footprint->Add( refText.release(), ADD_MODE::APPEND );
     }
 
-    return footprintPtr.release();
+    return footprintPtr;
 }
 
 

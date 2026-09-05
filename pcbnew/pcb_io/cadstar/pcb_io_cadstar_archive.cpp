@@ -210,10 +210,9 @@ bool PCB_IO_CADSTAR_ARCHIVE::FootprintExists( const wxString&        aLibraryPat
 }
 
 
-FOOTPRINT* PCB_IO_CADSTAR_ARCHIVE::FootprintLoad( const wxString&        aLibraryPath,
-                                                      const wxString&        aFootprintName,
-                                                      bool                   aKeepUUID,
-                                                      const std::map<std::string, UTF8>* aProperties )
+std::unique_ptr<FOOTPRINT> PCB_IO_CADSTAR_ARCHIVE::FootprintLoad( const wxString& aLibraryPath,
+                                                                  const wxString& aFootprintName, bool aKeepUUID,
+                                                                  const std::map<std::string, UTF8>* aProperties )
 {
     ensureLoadedLibrary( aLibraryPath );
 
@@ -226,7 +225,8 @@ FOOTPRINT* PCB_IO_CADSTAR_ARCHIVE::FootprintLoad( const wxString&        aLibrar
     if( !m_cache.at( aLibraryPath ).at( aFootprintName ) )
         return nullptr;
 
-    return static_cast<FOOTPRINT*>( m_cache.at( aLibraryPath ).at( aFootprintName )->Duplicate( IGNORE_PARENT_GROUP ) );
+    return std::unique_ptr<FOOTPRINT>( static_cast<FOOTPRINT*>(
+            m_cache.at( aLibraryPath ).at( aFootprintName )->Duplicate( IGNORE_PARENT_GROUP ) ) );
 }
 
 
