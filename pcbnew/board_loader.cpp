@@ -178,10 +178,10 @@ std::unique_ptr<BOARD> BOARD_LOADER::CreateEmptyBoard( PROJECT* aProject )
 }
 
 
-bool BOARD_LOADER::SaveBoard( wxString& aFileName, BOARD* aBoard, PCB_IO_MGR::PCB_FILE_T aFormat )
+bool BOARD_LOADER::SaveBoard( wxString& aFileName, BOARD& aBoard, PCB_IO_MGR::PCB_FILE_T aFormat )
 {
-    aBoard->BuildConnectivity();
-    aBoard->SynchronizeNetsAndNetClasses( false );
+    aBoard.BuildConnectivity();
+    aBoard.SynchronizeNetsAndNetClasses( false );
 
     try
     {
@@ -204,7 +204,7 @@ bool BOARD_LOADER::SaveBoard( wxString& aFileName, BOARD* aBoard, PCB_IO_MGR::PC
 }
 
 
-bool BOARD_LOADER::SaveBoard( wxString& aFileName, BOARD* aBoard )
+bool BOARD_LOADER::SaveBoard( wxString& aFileName, BOARD& aBoard )
 {
     return SaveBoard( aFileName, aBoard, PCB_IO_MGR::KICAD_SEXP );
 }

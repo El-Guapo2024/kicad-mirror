@@ -236,7 +236,7 @@ public:
      *
      * @throw IO_ERROR if there is a problem saving or exporting.
      */
-    static void Save( PCB_FILE_T aFileType, const wxString& aFileName, BOARD* aBoard,
+    static void Save( PCB_FILE_T aFileType, const wxString& aFileName, BOARD& aBoard,
                       const std::map<std::string, UTF8>* aProperties = nullptr );
 
     /**

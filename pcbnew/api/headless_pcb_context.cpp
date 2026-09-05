@@ -101,7 +101,7 @@ bool HEADLESS_PCB_CONTEXT::SaveBoard()
     if( fileName.IsEmpty() )
         return false;
 
-    bool success = BOARD_LOADER::SaveBoard( fileName, m_board.get() );
+    bool success = BOARD_LOADER::SaveBoard( fileName, *m_board );
 
     if( success )
     {
@@ -123,7 +123,7 @@ bool HEADLESS_PCB_CONTEXT::SavePcbCopy( const wxString& aFileName, bool aCreateP
 
     wxString outPath = aFileName;
 
-    bool success = BOARD_LOADER::SaveBoard( outPath, m_board.get() );
+    bool success = BOARD_LOADER::SaveBoard( outPath, *m_board );
 
     if( success && aCreateProject )
     {

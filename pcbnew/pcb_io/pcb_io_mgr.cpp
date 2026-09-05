@@ -207,8 +207,8 @@ std::unique_ptr<BOARD> PCB_IO_MGR::Load( PCB_FILE_T aFileType, const wxString& a
 }
 
 
-void PCB_IO_MGR::Save( PCB_FILE_T aFileType, const wxString& aFileName, BOARD* aBoard,
-                   const std::map<std::string, UTF8>* aProperties )
+void PCB_IO_MGR::Save( PCB_FILE_T aFileType, const wxString& aFileName, BOARD& aBoard,
+                       const std::map<std::string, UTF8>* aProperties )
 {
     IO_RELEASER<PCB_IO> pi( FindPlugin( aFileType ) );
 

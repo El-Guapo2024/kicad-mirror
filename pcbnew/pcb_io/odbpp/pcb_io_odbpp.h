@@ -118,7 +118,7 @@ public:
 
     ~PCB_IO_ODBPP() override;
 
-    void SaveBoard( const wxString& aFileName, BOARD* aBoard,
+    void SaveBoard( const wxString& aFileName, BOARD& aBoard,
                     const std::map<std::string, UTF8>* aProperties = nullptr ) override;
 
     const IO_BASE::IO_FILE_DESC GetBoardFileDesc() const override

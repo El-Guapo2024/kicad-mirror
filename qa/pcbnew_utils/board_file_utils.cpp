@@ -61,7 +61,7 @@ std::string GetPcbnewTestDataDir()
 void DumpBoardToFile( BOARD& board, const std::filesystem::path& aFilename )
 {
     PCB_IO_KICAD_SEXPR io;
-    io.SaveBoard( aFilename.string(), &board );
+    io.SaveBoard( aFilename.string(), board );
 }
 
 

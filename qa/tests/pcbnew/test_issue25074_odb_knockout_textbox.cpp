@@ -87,7 +87,7 @@ BOOST_AUTO_TEST_CASE( OdbKnockoutTextboxExport )
     props["units"] = "mm";
     props["sigfig"] = "6";
 
-    BOOST_REQUIRE_NO_THROW( odbExporter.SaveBoard( outDir.string(), board.get(), &props ) );
+    BOOST_REQUIRE_NO_THROW( odbExporter.SaveBoard( outDir.string(), *board, &props ) );
 
     const fs::path features = outDir / "steps" / "pcb" / "layers" / "b.silkscreen" / "features";
 

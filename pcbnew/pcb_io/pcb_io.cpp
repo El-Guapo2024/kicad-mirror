@@ -102,8 +102,7 @@ std::vector<FOOTPRINT*> PCB_IO::GetImportedCachedLibraryFootprints()
 }
 
 
-void PCB_IO::SaveBoard( const wxString& aFileName, BOARD* aBoard,
-                        const std::map<std::string, UTF8>* aProperties )
+void PCB_IO::SaveBoard( const wxString& aFileName, BOARD& aBoard, const std::map<std::string, UTF8>* aProperties )
 {
     // not pure virtual so that plugins only have to implement subset of the PLUGIN interface.
     NOT_IMPLEMENTED( __FUNCTION__ );

@@ -367,7 +367,7 @@ public:
 
     bool CanReadBoard( const wxString& aFileName ) const override;
 
-    void SaveBoard( const wxString& aFileName, BOARD* aBoard,
+    void SaveBoard( const wxString& aFileName, BOARD& aBoard,
                     const std::map<std::string, UTF8>* aProperties = nullptr ) override;
 
     /** Serialize a BOARD to an OUTPUTFORMATTER without file I/O or Prettify.

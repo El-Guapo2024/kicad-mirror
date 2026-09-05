@@ -93,11 +93,7 @@ public:
     /// references the write and the release  The export subtracts the phases that it skips
     static constexpr int EXPORT_PHASES = 12;
 
-    // BOARD* LoadBoard( const wxString& aFileName, BOARD* aAppendToMe,
-    //                   const std::map<std::string, UTF8>* aProperties = nullptr,
-    //                   PROJECT* aProject = nullptr ) override;
-
-    void SaveBoard( const wxString& aFileName, BOARD* aBoard,
+    void SaveBoard( const wxString& aFileName, BOARD& aBoard,
                     const std::map<std::string, UTF8>* aProperties = nullptr ) override;
 
     const IO_BASE::IO_FILE_DESC GetBoardFileDesc() const override

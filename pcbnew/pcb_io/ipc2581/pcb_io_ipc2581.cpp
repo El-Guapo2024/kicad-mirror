@@ -4834,7 +4834,7 @@ wxXmlNode* PCB_IO_IPC2581::generateAvlSection()
 }
 
 
-void PCB_IO_IPC2581::SaveBoard( const wxString& aFileName, BOARD* aBoard,
+void PCB_IO_IPC2581::SaveBoard( const wxString& aFileName, BOARD& aBoard,
                                 const std::map<std::string, UTF8>* aProperties )
 {
     // Clean up any previous export state to allow multiple exports per plugin instance
@@ -4844,7 +4844,7 @@ void PCB_IO_IPC2581::SaveBoard( const wxString& aFileName, BOARD* aBoard,
     m_contentNode = nullptr;
     m_lastAppendedNode = nullptr;
 
-    m_board = aBoard;
+    m_board = &aBoard;
     m_padstack_backdrill_specs.clear();
     m_backdrill_spec_nodes.clear();
     m_backdrill_spec_used.clear();

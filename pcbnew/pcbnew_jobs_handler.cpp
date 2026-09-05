@@ -3093,7 +3093,7 @@ int PCBNEW_JOBS_HANDLER::JobExportDrc( JOB* aJob )
 
     if( drcJob->m_refillZones && drcJob->m_saveBoard )
     {
-        if( BOARD_LOADER::SaveBoard( drcJob->m_filename, brd ) )
+        if( BOARD_LOADER::SaveBoard( drcJob->m_filename, *brd ) )
         {
             m_reporter->Report( _( "Saved board\n" ), RPT_SEVERITY_ACTION );
         }
@@ -3288,7 +3288,7 @@ int PCBNEW_JOBS_HANDLER::JobUpgrade( JOB* aJob )
 
         if( shouldSave )
         {
-            pi->SaveBoard( brd->GetFileName(), brd );
+            pi->SaveBoard( brd->GetFileName(), *brd );
             m_reporter->Report( _( "Successfully saved board file using the latest format\n" ), RPT_SEVERITY_INFO );
         }
         else
@@ -3637,7 +3637,7 @@ int PCBNEW_JOBS_HANDLER::JobImport( JOB* aJob )
 
         // Save as KiCad format
         IO_RELEASER<PCB_IO> kicadPlugin( PCB_IO_MGR::FindPlugin( PCB_IO_MGR::KICAD_SEXP ) );
-        kicadPlugin->SaveBoard( outputPath, board.get() );
+        kicadPlugin->SaveBoard( outputPath, *board );
 
         m_reporter->Report( wxString::Format( _( "Successfully saved imported board to '%s'\n" ), outputPath ),
                             RPT_SEVERITY_INFO );
@@ -3936,7 +3936,7 @@ int PCBNEW_JOBS_HANDLER::runPcbMerge( const wxString& aAncestor, const wxString&
 
     try
     {
-        pcbIO.SaveBoard( aOutput, merged.get() );
+        pcbIO.SaveBoard( aOutput, *merged );
     }
     catch( const IO_ERROR& ioe )
     {

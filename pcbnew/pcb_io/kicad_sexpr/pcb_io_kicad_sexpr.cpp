@@ -284,10 +284,10 @@ bool PCB_IO_KICAD_SEXPR::CanReadBoard( const wxString& aFileName ) const
 }
 
 
-void PCB_IO_KICAD_SEXPR::SaveBoard( const wxString& aFileName, BOARD* aBoard,
+void PCB_IO_KICAD_SEXPR::SaveBoard( const wxString& aFileName, BOARD& aBoard,
                                     const std::map<std::string, UTF8>* aProperties )
 {
-    wxString sanityResult = aBoard->GroupsSanityCheck();
+    wxString sanityResult = aBoard.GroupsSanityCheck();
 
     if( sanityResult != wxEmptyString && m_queryUserCallback )
     {
@@ -302,7 +302,7 @@ void PCB_IO_KICAD_SEXPR::SaveBoard( const wxString& aFileName, BOARD* aBoard,
     }
 
     PRETTIFIED_FILE_OUTPUTFORMATTER formatter( aFileName );
-    FormatBoardToFormatter( &formatter, aBoard, aProperties );
+    FormatBoardToFormatter( &formatter, &aBoard, aProperties );
     formatter.Finish();
 }
 

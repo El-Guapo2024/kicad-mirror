@@ -193,7 +193,7 @@ struct IPC2581_EXPORT_FIXTURE
         return m_kicadPlugin.LoadBoard( fullPath );
     }
 
-    bool ExportAndValidate( BOARD* aBoard, char aVersion, wxString& aErrorMsg,
+    bool ExportAndValidate( BOARD& aBoard, char aVersion, wxString& aErrorMsg,
                            const std::string& aMode = std::string(),
                            const std::string& aRefDes = std::string(),
                            const std::string& aSections = std::string() )
@@ -285,7 +285,7 @@ BOOST_AUTO_TEST_CASE( SurfaceFinishExport )
     props["version"] = "C";
     props["sigfig"] = "3";
 
-    m_ipc2581Plugin.SaveBoard( tempPath, board.get(), &props );
+    m_ipc2581Plugin.SaveBoard( tempPath, *board, &props );
 
     BOOST_REQUIRE( wxFileExists( tempPath ) );
 
@@ -331,7 +331,7 @@ BOOST_AUTO_TEST_CASE( NoSurfaceFinishExport )
     props["version"] = "C";
     props["sigfig"] = "3";
 
-    m_ipc2581Plugin.SaveBoard( tempPath, board.get(), &props );
+    m_ipc2581Plugin.SaveBoard( tempPath, *board, &props );
 
     BOOST_REQUIRE( wxFileExists( tempPath ) );
 
@@ -385,7 +385,7 @@ BOOST_AUTO_TEST_CASE( SchemaValidationVersionB )
             }
 
             wxString errorMsg;
-            bool valid = ExportAndValidate( board.get(), 'B', errorMsg );
+            bool valid = ExportAndValidate( *board, 'B', errorMsg );
 
             BOOST_CHECK_MESSAGE( valid, "IPC-2581B validation failed for " + boardFile + ": " + errorMsg );
         }
@@ -428,7 +428,7 @@ BOOST_AUTO_TEST_CASE( SchemaValidationVersionC )
             }
 
             wxString errorMsg;
-            bool valid = ExportAndValidate( board.get(), 'C', errorMsg );
+            bool valid = ExportAndValidate( *board, 'C', errorMsg );
 
             BOOST_CHECK_MESSAGE( valid, "IPC-2581C validation failed for " + boardFile + ": " + errorMsg );
         }
@@ -486,7 +486,7 @@ BOOST_AUTO_TEST_CASE( FunctionModeSchemaValidation )
                                         << " RefDes: " << ( refdes.empty() ? "include" : refdes ) )
                     {
                         wxString errorMsg;
-                        bool     valid = ExportAndValidate( board.get(), version, errorMsg, mode,
+                        bool     valid = ExportAndValidate( *board, version, errorMsg, mode,
                                                             refdes );
 
                         BOOST_CHECK_MESSAGE( valid, "validation failed: " + errorMsg );
@@ -527,7 +527,7 @@ BOOST_AUTO_TEST_CASE( FunctionModeSuppressedReferences )
             BOOST_TEST_CONTEXT( "Sections: " << sections << " Version: " << version )
             {
                 wxString errorMsg;
-                bool     valid = ExportAndValidate( board.get(), version, errorMsg, "userdef",
+                bool     valid = ExportAndValidate( *board, version, errorMsg, "userdef",
                                                     std::string(), sections );
 
                 // Revision B cannot express components without packages and must say so
@@ -567,7 +567,7 @@ BOOST_AUTO_TEST_CASE( ComplexBoardExport )
                 BOOST_TEST_CONTEXT( "Version " << version )
                 {
                     wxString errorMsg;
-                    bool valid = ExportAndValidate( board.get(), version, errorMsg );
+                    bool valid = ExportAndValidate( *board, version, errorMsg );
 
                     BOOST_CHECK_MESSAGE( valid,
                         wxString::Format( "Export/validation failed for %s version %c: %s",
@@ -603,7 +603,7 @@ BOOST_AUTO_TEST_CASE( DegenerateTrackArcExportsAsLine )
     props["version"] = "C";
     props["sigfig"] = "6";
 
-    m_ipc2581Plugin.SaveBoard( tempPath, &board, &props );
+    m_ipc2581Plugin.SaveBoard( tempPath, board, &props );
     BOOST_REQUIRE( wxFileExists( tempPath ) );
 
     BOOST_CHECK( FileContainsPattern( tempPath, wxT( "<Line " ) ) );
@@ -643,7 +643,7 @@ BOOST_AUTO_TEST_CASE( TextBoxUsesDrawPosition )
     props["version"] = "C";
     props["sigfig"] = "6";
 
-    m_ipc2581Plugin.SaveBoard( tempPath, &board, &props );
+    m_ipc2581Plugin.SaveBoard( tempPath, board, &props );
     BOOST_REQUIRE( wxFileExists( tempPath ) );
 
     std::ifstream xmlFile( tempPath.ToStdString() );
@@ -715,7 +715,7 @@ BOOST_AUTO_TEST_CASE( SmdPadSolderMaskExport_Issue16658 )
     props["version"] = "C";
     props["sigfig"] = "3";
 
-    m_ipc2581Plugin.SaveBoard( tempPath, board.get(), &props );
+    m_ipc2581Plugin.SaveBoard( tempPath, *board, &props );
 
     BOOST_REQUIRE( wxFileExists( tempPath ) );
 
@@ -756,7 +756,7 @@ BOOST_AUTO_TEST_CASE( EmptyRefDesProducesValidXml )
             props["version"] = std::string( 1, version );
             props["sigfig"] = "3";
 
-            m_ipc2581Plugin.SaveBoard( tempPath, board.get(), &props );
+            m_ipc2581Plugin.SaveBoard( tempPath, *board, &props );
             BOOST_REQUIRE( wxFileExists( tempPath ) );
 
             BOOST_CHECK_MESSAGE( !FileContainsPattern( tempPath, wxT( "refDes=\"\"" ) ),
@@ -792,7 +792,7 @@ BOOST_AUTO_TEST_CASE( FlippedComponentRotation )
     props["version"] = "C";
     props["sigfig"] = "3";
 
-    m_ipc2581Plugin.SaveBoard( tempPath, board.get(), &props );
+    m_ipc2581Plugin.SaveBoard( tempPath, *board, &props );
     BOOST_REQUIRE( wxFileExists( tempPath ) );
 
     // C5 is on B.Cu at 90 degrees. Its Component Xform must be rotation="90.0",
@@ -837,7 +837,7 @@ BOOST_AUTO_TEST_CASE( ContentBomRef )
     props["version"] = "C";
     props["sigfig"] = "3";
 
-    m_ipc2581Plugin.SaveBoard( tempPath, board.get(), &props );
+    m_ipc2581Plugin.SaveBoard( tempPath, *board, &props );
     BOOST_REQUIRE( wxFileExists( tempPath ) );
 
     bool hasBom = FileContainsPattern( tempPath, wxT( "<Bom " ) );
@@ -874,7 +874,7 @@ BOOST_AUTO_TEST_CASE( KnockoutTextMultiContour_Issue23968 )
         BOOST_TEST_CONTEXT( "Version " << version )
         {
             wxString errorMsg;
-            bool valid = ExportAndValidate( board.get(), version, errorMsg );
+            bool valid = ExportAndValidate( *board, version, errorMsg );
 
             BOOST_CHECK_MESSAGE( valid,
                     wxString::Format( "Knockout text export should be schema-valid "
@@ -928,7 +928,7 @@ BOOST_AUTO_TEST_CASE( BackdrillSpecEncoding )
     props["version"] = "C";
     props["sigfig"] = "4";
 
-    BOOST_REQUIRE_NO_THROW( m_ipc2581Plugin.SaveBoard( tempPath, &board, &props ) );
+    BOOST_REQUIRE_NO_THROW( m_ipc2581Plugin.SaveBoard( tempPath, board, &props ) );
     BOOST_REQUIRE( wxFileExists( tempPath ) );
 
     BOOST_CHECK_MESSAGE(
@@ -1054,7 +1054,7 @@ BOOST_AUTO_TEST_CASE( ExposedPadPasteRespected_Issue24318 )
     props["version"] = "C";
     props["sigfig"] = "4";
 
-    BOOST_REQUIRE_NO_THROW( m_ipc2581Plugin.SaveBoard( tempPath, &board, &props ) );
+    BOOST_REQUIRE_NO_THROW( m_ipc2581Plugin.SaveBoard( tempPath, board, &props ) );
     BOOST_REQUIRE( wxFileExists( tempPath ) );
 
     std::ifstream xmlFile( tempPath.ToStdString() );
@@ -1180,7 +1180,7 @@ BOOST_AUTO_TEST_CASE( GrRectCornerRadius_Issue24754 )
     props["version"] = "C";
     props["sigfig"] = "4";
 
-    BOOST_REQUIRE_NO_THROW( m_ipc2581Plugin.SaveBoard( tempPath, &board, &props ) );
+    BOOST_REQUIRE_NO_THROW( m_ipc2581Plugin.SaveBoard( tempPath, board, &props ) );
     BOOST_REQUIRE( wxFileExists( tempPath ) );
 
     std::string xml = ReadFile( tempPath );
@@ -1235,7 +1235,7 @@ BOOST_AUTO_TEST_CASE( BackOnlyMaskNoFrontOpening_Issue24753 )
     props["version"] = "C";
     props["sigfig"] = "4";
 
-    BOOST_REQUIRE_NO_THROW( m_ipc2581Plugin.SaveBoard( tempPath, &board, &props ) );
+    BOOST_REQUIRE_NO_THROW( m_ipc2581Plugin.SaveBoard( tempPath, board, &props ) );
     BOOST_REQUIRE( wxFileExists( tempPath ) );
 
     std::string xml = ReadFile( tempPath );
@@ -1285,7 +1285,7 @@ BOOST_AUTO_TEST_CASE( RoundRectMaskRadius_Issue24751 )
     props["version"] = "C";
     props["sigfig"] = "4";
 
-    BOOST_REQUIRE_NO_THROW( m_ipc2581Plugin.SaveBoard( tempPath, &board, &props ) );
+    BOOST_REQUIRE_NO_THROW( m_ipc2581Plugin.SaveBoard( tempPath, board, &props ) );
     BOOST_REQUIRE( wxFileExists( tempPath ) );
 
     std::string xml = ReadFile( tempPath );
@@ -1337,7 +1337,7 @@ BOOST_AUTO_TEST_CASE( MultiLayerFootprintGraphic_Issue24752 )
     props["version"] = "C";
     props["sigfig"] = "4";
 
-    BOOST_REQUIRE_NO_THROW( m_ipc2581Plugin.SaveBoard( tempPath, &board, &props ) );
+    BOOST_REQUIRE_NO_THROW( m_ipc2581Plugin.SaveBoard( tempPath, board, &props ) );
     BOOST_REQUIRE( wxFileExists( tempPath ) );
 
     std::string xml = ReadFile( tempPath );
@@ -1387,7 +1387,7 @@ BOOST_AUTO_TEST_CASE( SolderMaskMarginExpandsMaskPrimitive_Issue24749 )
     props["version"] = "C";
     props["sigfig"] = "4";
 
-    BOOST_REQUIRE_NO_THROW( m_ipc2581Plugin.SaveBoard( tempPath, &board, &props ) );
+    BOOST_REQUIRE_NO_THROW( m_ipc2581Plugin.SaveBoard( tempPath, board, &props ) );
     BOOST_REQUIRE( wxFileExists( tempPath ) );
 
     std::ifstream xmlFile( tempPath.ToStdString() );
@@ -1449,7 +1449,7 @@ BOOST_AUTO_TEST_CASE( SchemaValidation_Issue25149 )
             BOOST_REQUIRE( board );
 
             wxString errorMsg;
-            bool     valid = ExportAndValidate( board.get(), 'C', errorMsg );
+            bool     valid = ExportAndValidate( *board, 'C', errorMsg );
 
             BOOST_CHECK_MESSAGE( valid, "IPC-2581C validation failed for " + boardFile + ": " + errorMsg );
         }
@@ -1472,7 +1472,7 @@ BOOST_AUTO_TEST_CASE( NoClosedOutline_Issue25149 )
     props["version"] = "C";
     props["sigfig"] = "3";
 
-    BOOST_REQUIRE_NO_THROW( m_ipc2581Plugin.SaveBoard( tempPath, board.get(), &props ) );
+    BOOST_REQUIRE_NO_THROW( m_ipc2581Plugin.SaveBoard( tempPath, *board, &props ) );
     BOOST_REQUIRE( wxFileExists( tempPath ) );
 
     BOOST_CHECK_MESSAGE( !FileContainsPattern( tempPath, wxT( "<Profile" ) ),
@@ -1494,7 +1494,7 @@ BOOST_AUTO_TEST_CASE( ProcessLayerViaPads_Issue25149 )
     props["version"] = "C";
     props["sigfig"] = "3";
 
-    BOOST_REQUIRE_NO_THROW( m_ipc2581Plugin.SaveBoard( tempPath, board.get(), &props ) );
+    BOOST_REQUIRE_NO_THROW( m_ipc2581Plugin.SaveBoard( tempPath, *board, &props ) );
     BOOST_REQUIRE( wxFileExists( tempPath ) );
 
     std::string xml = ReadFile( tempPath );

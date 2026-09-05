@@ -780,7 +780,7 @@ protected:
      *
      * @return
      */
-    bool saveBoardAsFile( BOARD* aBoard, const wxString& aFileName, bool aHeadless = false );
+    bool saveBoardAsFile( BOARD& aBoard, const wxString& aFileName, bool aHeadless = false );
 
     bool saveSelectionToDesignBlock( const wxString& aNickname, PCB_SELECTION& aSelection, DESIGN_BLOCK& aBlock );
 

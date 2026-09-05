@@ -155,7 +155,7 @@ BOOST_AUTO_TEST_CASE( ODBNetlistCoordinatesMatchFeatures )
     std::map<std::string, UTF8> props;
     props["units"] = "mm";
     props["sigfig"] = "6";
-    BOOST_REQUIRE_NO_THROW( odbExporter.SaveBoard( odbRoot.GetFullPath(), &board, &props ) );
+    BOOST_REQUIRE_NO_THROW( odbExporter.SaveBoard( odbRoot.GetFullPath(), board, &props ) );
 
     // Read the netlist file
     wxFileName netlistFile( odbRoot.GetFullPath(), wxEmptyString );

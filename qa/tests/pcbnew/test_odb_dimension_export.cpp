@@ -126,7 +126,7 @@ BOOST_AUTO_TEST_CASE( OdbDimensionExport )
     props["units"] = "mm";
     props["sigfig"] = "6";
 
-    BOOST_REQUIRE_NO_THROW( odbExporter.SaveBoard( outDir.string(), board.get(), &props ) );
+    BOOST_REQUIRE_NO_THROW( odbExporter.SaveBoard( outDir.string(), *board, &props ) );
 
     BOOST_REQUIRE_MESSAGE( fs::exists( outDir ), "ODB++ export produced no output tree" );
 

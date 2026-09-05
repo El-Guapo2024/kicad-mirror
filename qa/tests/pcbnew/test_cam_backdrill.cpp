@@ -144,7 +144,7 @@ BOOST_AUTO_TEST_CASE( BackdrillCamOutputs )
     std::map<std::string, UTF8> props;
     props["units"] = "mm";
     props["sigfig"] = "4";
-    BOOST_REQUIRE_NO_THROW( odbExporter.SaveBoard( odbRoot.GetFullPath(), &board, &props ) );
+    BOOST_REQUIRE_NO_THROW( odbExporter.SaveBoard( odbRoot.GetFullPath(), board, &props ) );
 
     wxFileName drill1Dir( odbRoot.GetFullPath(), wxEmptyString );
     drill1Dir.AppendDir( wxT( "steps" ) );
@@ -486,7 +486,7 @@ BOOST_AUTO_TEST_CASE( OdbPpUnfilledRectangleOnSilk )
     std::map<std::string, UTF8> props;
     props["units"] = "mm";
     props["sigfig"] = "4";
-    BOOST_REQUIRE_NO_THROW( odbExporter.SaveBoard( odbRoot.GetFullPath(), &board, &props ) );
+    BOOST_REQUIRE_NO_THROW( odbExporter.SaveBoard( odbRoot.GetFullPath(), board, &props ) );
 
     wxFileName silkFeatures( odbRoot.GetFullPath(), wxT( "features" ) );
     silkFeatures.AppendDir( wxT( "steps" ) );
@@ -548,7 +548,7 @@ BOOST_AUTO_TEST_CASE( OdbPpDegenerateTrackArc )
     std::map<std::string, UTF8> props;
     props["units"] = "mm";
     props["sigfig"] = "4";
-    BOOST_REQUIRE_NO_THROW( odbExporter.SaveBoard( odbRoot.GetFullPath(), &board, &props ) );
+    BOOST_REQUIRE_NO_THROW( odbExporter.SaveBoard( odbRoot.GetFullPath(), board, &props ) );
 
     wxFileName copperFeatures( odbRoot.GetFullPath(), wxT( "features" ) );
     copperFeatures.AppendDir( wxT( "steps" ) );
@@ -596,7 +596,7 @@ static wxFileName ExportOdbTree( BOARD* aBoard, const wxFileName& aTempDir )
     std::map<std::string, UTF8> props;
     props["units"] = "mm";
     props["sigfig"] = "4";
-    BOOST_REQUIRE_NO_THROW( odbExporter.SaveBoard( odbRoot.GetFullPath(), aBoard, &props ) );
+    BOOST_REQUIRE_NO_THROW( odbExporter.SaveBoard( odbRoot.GetFullPath(), *aBoard, &props ) );
 
     return odbRoot;
 }
@@ -748,7 +748,7 @@ BOOST_AUTO_TEST_CASE( OdbPpPlatedSlotDrill )
     std::map<std::string, UTF8> props;
     props["units"] = "mm";
     props["sigfig"] = "4";
-    BOOST_REQUIRE_NO_THROW( odbExporter.SaveBoard( odbRoot.GetFullPath(), &board, &props ) );
+    BOOST_REQUIRE_NO_THROW( odbExporter.SaveBoard( odbRoot.GetFullPath(), board, &props ) );
 
     auto layerDir = [&]( const wxString& aLayer )
     {

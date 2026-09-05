@@ -1132,7 +1132,7 @@ HANDLER_RESULT<SavedDocumentResponse> API_HANDLER_BOARD::handleSaveDocumentToStr
             response.set_contents( aData.ToUTF8() );
         } );
 
-    io.SaveBoard( wxEmptyString, board(), nullptr );
+    io.SaveBoard( wxEmptyString, *board(), nullptr );
 
     return response;
 }

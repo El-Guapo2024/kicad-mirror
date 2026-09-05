@@ -94,7 +94,7 @@ BOOST_AUTO_TEST_CASE( Issue19775_ZoneLayerWildcards )
         // Load and save the board from above to test how we write the zones into it
         {
             std::unique_ptr<BOARD> testBoard = kicadPlugin.LoadBoard( dataPath + "LayerEnumerate.kicad_pcb" );
-            kicadPlugin.SaveBoard( tmpBoard.string(), testBoard.get() );
+            kicadPlugin.SaveBoard( tmpBoard.string(), *testBoard );
         }
 
         // Read the new board
@@ -167,7 +167,7 @@ BOOST_AUTO_TEST_CASE( CoincidentDrawingsSurviveSave )
     const wxString path =
             ( std::filesystem::temp_directory_path() / "qa_coincident_drawings.kicad_pcb" ).string();
 
-    kicadPlugin.SaveBoard( path, &board );
+    kicadPlugin.SaveBoard( path, board );
 
     std::unique_ptr<BOARD> reloaded = kicadPlugin.LoadBoard( path );
 
@@ -654,7 +654,7 @@ BOOST_AUTO_TEST_CASE( CopperThievingZone_RoundTrip )
                                     / "copper_thieving_roundtrip.kicad_pcb";
 
     PCB_IO_KICAD_SEXPR writer;
-    writer.SaveBoard( tmpPath.string(), writeBoard.get() );
+    writer.SaveBoard( tmpPath.string(), *writeBoard );
 
     PCB_IO_KICAD_SEXPR     reader;
     std::unique_ptr<BOARD> readBoard = reader.LoadBoard( tmpPath.string() );
@@ -714,7 +714,7 @@ BOOST_AUTO_TEST_CASE( CopperThievingZone_AllPatternsRoundTrip )
             std::filesystem::path tmpPath = std::filesystem::temp_directory_path()
                                             / "copper_thieving_pattern.kicad_pcb";
             PCB_IO_KICAD_SEXPR writer;
-            writer.SaveBoard( tmpPath.string(), writeBoard.get() );
+            writer.SaveBoard( tmpPath.string(), *writeBoard );
 
             PCB_IO_KICAD_SEXPR     reader;
             std::unique_ptr<BOARD> readBoard = reader.LoadBoard( tmpPath.string() );

@@ -803,7 +803,7 @@ void ROUTER_TOOL::saveRouterDebugLog()
         {
             lastLoggerSize = logger->GetEvents().size(); // prevent re-entry
             return;
-        }        
+        }
     }
     else
     {
@@ -856,7 +856,7 @@ void ROUTER_TOOL::saveRouterDebugLog()
 
     PCB_IO_KICAD_SEXPR  pcb_io;
 
-    pcb_io.SaveBoard( fname_dump.GetAbsolutePath(), m_iface->GetBoard(), nullptr );
+    pcb_io.SaveBoard( fname_dump.GetAbsolutePath(), *m_iface->GetBoard(), nullptr );
 
     PROJECT* prj = m_iface->GetBoard()->GetProject();
     prj->GetProjectFile().SaveAs( fname_dump.GetPath(), fname_dump.GetName() );
@@ -896,7 +896,7 @@ void ROUTER_TOOL::saveRouterDebugLog()
     if( !logData.m_BoardHash ) // should never happen...
         return;
 
-    logData.m_Mode = m_router->Mode();    
+    logData.m_Mode = m_router->Mode();
     logData.m_Events = logger->GetEvents();
 
     FILE*    log_f = wxFopen( fname_log.GetAbsolutePath(), "wb" );

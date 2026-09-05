@@ -1045,7 +1045,7 @@ bool PCB_EDIT_FRAME::SavePcbFile( const wxString& aFileName, bool addToHistory,
     {
         IO_RELEASER<PCB_IO> pi( PCB_IO_MGR::FindPlugin( PCB_IO_MGR::KICAD_SEXP ) );
 
-        pi->SaveBoard( pcbFileName.GetFullPath(), GetBoard(), nullptr );
+        pi->SaveBoard( pcbFileName.GetFullPath(), *GetBoard(), nullptr );
     }
     catch( const IO_ERROR& ioe )
     {
@@ -1144,7 +1144,7 @@ bool PCB_EDIT_FRAME::SavePcbCopy( const wxString& aFileName, bool aCreateProject
 
         wxASSERT( pcbFileName.IsAbsolute() );
 
-        pi->SaveBoard( pcbFileName.GetFullPath(), GetBoard(), nullptr );
+        pi->SaveBoard( pcbFileName.GetFullPath(), *GetBoard(), nullptr );
     }
     catch( const IO_ERROR& ioe )
     {

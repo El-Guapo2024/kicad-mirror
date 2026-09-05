@@ -45,7 +45,7 @@ public:
     /*
      * Saves the entire board to the clipboard formatted using the PCB_IO_KICAD_SEXPR formatting
      */
-    void SaveBoard( const wxString& aFileName, BOARD* aBoard,
+    void SaveBoard( const wxString& aFileName, BOARD& aBoard,
                     const std::map<std::string, UTF8>* aProperties = nullptr ) override;
 
     /*

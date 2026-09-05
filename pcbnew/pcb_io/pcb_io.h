@@ -170,7 +170,7 @@ public:
      *
      * @throw IO_ERROR if there is a problem saving or exporting.
      */
-    virtual void SaveBoard( const wxString& aFileName, BOARD* aBoard,
+    virtual void SaveBoard( const wxString& aFileName, BOARD& aBoard,
                             const std::map<std::string, UTF8>* aProperties = nullptr );
 
     /**

@@ -498,18 +498,18 @@ BOARD_ITEM* CLIPBOARD_IO::Parse()
 }
 
 
-void CLIPBOARD_IO::SaveBoard( const wxString& aFileName, BOARD* aBoard,
+void CLIPBOARD_IO::SaveBoard( const wxString& aFileName, BOARD& aBoard,
                               const std::map<std::string, UTF8>* aProperties )
 {
     init( aProperties );
 
-    m_board = aBoard;       // after init()
+    m_board = &aBoard; // after init()
 
     m_formatter.Print( "(kicad_pcb (version %d) (generator \"pcbnew\") (generator_version %s)",
                   SEXPR_BOARD_FILE_VERSION,
                   m_formatter.Quotew( GetMajorMinorVersion() ).c_str() );
 
-    Format( aBoard );
+    Format( &aBoard );
 
     m_formatter.Print( ")" );
 

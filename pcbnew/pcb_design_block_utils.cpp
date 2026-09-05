@@ -76,7 +76,7 @@ bool checkOverwriteDbLayout( wxWindow* aFrame, const LIB_ID& aLibId )
 }
 
 
-bool PCB_EDIT_FRAME::saveBoardAsFile( BOARD* aBoard, const wxString& aFileName, bool aHeadless )
+bool PCB_EDIT_FRAME::saveBoardAsFile( BOARD& aBoard, const wxString& aFileName, bool aHeadless )
 {
     // Ensure the "C" locale is temporary set, before saving any file
     // It also avoid wxWidget alerts about locale issues, later, when using Python 3
@@ -334,7 +334,7 @@ bool PCB_EDIT_FRAME::saveSelectionToDesignBlock( const wxString& aNickname, PCB_
 
     wxString tempFile = wxFileName::CreateTempFileName( "design_block" );
 
-    if( !saveBoardAsFile( tempBoard, tempFile, false ) )
+    if( !saveBoardAsFile( *tempBoard, tempFile, false ) )
     {
         DisplayErrorMessage( this, _( "Error saving temporary board file to create design block." ) );
         wxRemoveFile( tempFile );
