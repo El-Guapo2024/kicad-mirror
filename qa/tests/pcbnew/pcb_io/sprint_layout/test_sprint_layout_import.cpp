@@ -691,7 +691,7 @@ BOOST_AUTO_TEST_CASE( MultiBoardCallbackInvoked )
 }
 
 
-BOOST_AUTO_TEST_CASE( MultiBoardCallbackCancelReturnsNull )
+BOOST_AUTO_TEST_CASE( MultiBoardCallbackCancelThrows )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir()
                            + "/io/sprint_layout/mmjoy2-74hc165.lay6";
@@ -704,9 +704,7 @@ BOOST_AUTO_TEST_CASE( MultiBoardCallbackCancelReturnsNull )
                 return std::vector<IMPORT_PROJECT_DESC>();
             } );
 
-    std::unique_ptr<BOARD> board( plugin.LoadBoard( dataPath, nullptr ) );
-
-    BOOST_CHECK( board == nullptr );
+    BOOST_CHECK_THROW( plugin.LoadBoard( dataPath, nullptr ), IO_ERROR );
 }
 
 

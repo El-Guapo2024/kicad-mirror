@@ -114,7 +114,8 @@ BOARD* PCB_IO_EASYEDAPRO::LoadBoard( const wxString& aFileName, BOARD* aAppendTo
         m_progressReporter->Report( wxString::Format( _( "Loading %s..." ), aFileName ) );
 
         if( !m_progressReporter->KeepRefreshing() )
-            THROW_IO_ERROR( _( "File import canceled by user." ) );
+            // CANCEL is a magic string that supresses the error dialog
+            THROW_IO_ERROR( _( "CANCEL" ) );
     }
 
     PCB_IO_EASYEDAPRO_PARSER parser( nullptr, nullptr );
