@@ -759,45 +759,55 @@ EDA_ITEM* SCH_SYMBOL::Clone() const
 
 void SCH_SYMBOL::Serialize( google::protobuf::Any& aContainer ) const
 {
+    kiapi::schematic::types::SchematicSymbolInstance symbol;
+    Serialize( symbol );
+    aContainer.PackFrom( symbol );
+}
+
+
+void SCH_SYMBOL::Serialize( kiapi::schematic::types::SchematicSymbolInstance& aSymbol ) const
+{
     using namespace kiapi::common;
     using namespace kiapi::schematic::types;
 
-    SchematicSymbolInstance symbol;
-
-    symbol.mutable_id()->set_value( m_Uuid.AsStdString() );
-    PackVector2( *symbol.mutable_position(), GetPosition(), schIUScale );
-    symbol.set_locked( IsLocked() ? types::LockedState::LS_LOCKED : types::LockedState::LS_UNLOCKED );
-    symbol.set_fields_autoplaced( GetFieldsAutoplaced() != AUTOPLACE_NONE );
+    aSymbol.mutable_id()->set_value( m_Uuid.AsStdString() );
+    PackVector2( *aSymbol.mutable_position(), GetPosition(), schIUScale );
+    aSymbol.set_locked( IsLocked() ? types::LockedState::LS_LOCKED : types::LockedState::LS_UNLOCKED );
+    aSymbol.set_fields_autoplaced( GetFieldsAutoplaced() != AUTOPLACE_NONE );
 
     if( !UseLibIdLookup() )
-        symbol.set_lib_name( GetSchSymbolLibraryName().ToUTF8() );
+    {
+        LIB_ID id;
+        id.Parse( GetSchSymbolLibraryName() );
+        PackLibId( aSymbol.mutable_lib_id(), id );
+    }
 
-    symbol.set_passthrough( ToProtoEnum<PASSTHROUGH_MODE, SchematicPassthroughMode>( GetPassthroughMode() ) );
+    aSymbol.set_passthrough( ToProtoEnum<PASSTHROUGH_MODE, SchematicPassthroughMode>( GetPassthroughMode() ) );
 
-    SchematicSymbolTransform* transform = symbol.mutable_transform();
+    SchematicSymbolTransform* transform = aSymbol.mutable_transform();
     transform->set_orientation(
             ToProtoEnum<SYMBOL_ORIENTATION_PROP, SchematicSymbolOrientation>( GetOrientationProp() ) );
     transform->set_mirror_x( GetMirrorX() );
     transform->set_mirror_y( GetMirrorY() );
 
     if( GetBodyStyleCount() > 1 )
-        symbol.mutable_body_style()->set_style( GetBodyStyle() );
+        aSymbol.mutable_body_style()->set_style( GetBodyStyle() );
 
-    SchematicSymbol* def = symbol.mutable_definition();
+    SchematicSymbol* def = aSymbol.mutable_definition();
     PackLibId( def->mutable_id(), m_lib_id );
 
-    GetField( FIELD_T::REFERENCE )->Serialize( *symbol.mutable_reference_field(), schIUScale );
-    GetField( FIELD_T::VALUE )->Serialize( *symbol.mutable_value_field(), schIUScale );
-    GetField( FIELD_T::FOOTPRINT )->Serialize( *symbol.mutable_footprint_field(), schIUScale );
-    GetField( FIELD_T::DATASHEET )->Serialize( *symbol.mutable_datasheet_field(), schIUScale );
-    GetField( FIELD_T::DESCRIPTION )->Serialize( *symbol.mutable_description_field(), schIUScale );
+    GetField( FIELD_T::REFERENCE )->Serialize( *aSymbol.mutable_reference_field(), schIUScale );
+    GetField( FIELD_T::VALUE )->Serialize( *aSymbol.mutable_value_field(), schIUScale );
+    GetField( FIELD_T::FOOTPRINT )->Serialize( *aSymbol.mutable_footprint_field(), schIUScale );
+    GetField( FIELD_T::DATASHEET )->Serialize( *aSymbol.mutable_datasheet_field(), schIUScale );
+    GetField( FIELD_T::DESCRIPTION )->Serialize( *aSymbol.mutable_description_field(), schIUScale );
 
     for( const SCH_FIELD& field : GetFields() )
     {
         if( field.IsMandatory() )
             continue;
 
-        field.Serialize( *symbol.add_user_fields(), schIUScale );
+        field.Serialize( *aSymbol.add_user_fields(), schIUScale );
     }
 
     if( m_part )
@@ -860,42 +870,47 @@ void SCH_SYMBOL::Serialize( google::protobuf::Any& aContainer ) const
         }
     }
 
-    symbol.set_show_pin_names( GetShowPinNames() );
-    symbol.set_show_pin_numbers( GetShowPinNumbers() );
+    aSymbol.set_show_pin_names( GetShowPinNames() );
+    aSymbol.set_show_pin_numbers( GetShowPinNumbers() );
 
-    PackDistance( *symbol.mutable_pin_name_offset(), GetPinNameOffset(), schIUScale );
+    PackDistance( *aSymbol.mutable_pin_name_offset(), GetPinNameOffset(), schIUScale );
 
-    kiapi::common::PackCustomProperties( symbol.mutable_custom_properties(), *this );
-    aContainer.PackFrom( symbol );
+    kiapi::common::PackCustomProperties( aSymbol.mutable_custom_properties(), *this );
 }
 
 
 bool SCH_SYMBOL::Deserialize( const google::protobuf::Any& aContainer )
 {
-    using namespace kiapi::common;
-    using namespace kiapi::common::types;
-    using namespace kiapi::schematic::types;
-
-    SchematicSymbolInstance symbol;
+    kiapi::schematic::types::SchematicSymbolInstance symbol;
 
     if( !aContainer.UnpackTo( &symbol ) )
         return false;
 
-    const_cast<::KIID&>( m_Uuid ) = ::KIID( symbol.id().value() );
-    SetPosition( UnpackVector2( symbol.position(), schIUScale ) );
-    SetLocked( symbol.locked() == LockedState::LS_LOCKED );
-    SetFieldsAutoplaced( symbol.fields_autoplaced() ? AUTOPLACE_AUTO : AUTOPLACE_NONE );
-    kiapi::common::UnpackCustomProperties( symbol.custom_properties(), *this );
+    return Deserialize( symbol );
+}
 
-    if( !symbol.lib_name().empty() )
-        SetSchSymbolLibraryName( wxString::FromUTF8( symbol.lib_name() ) );
 
-    SetPassthroughMode( FromProtoEnum<SCH_SYMBOL::PASSTHROUGH_MODE>( symbol.passthrough() ) );
-    SetOrientationProp( FromProtoEnum<SYMBOL_ORIENTATION_PROP>( symbol.transform().orientation() ) );
-    SetMirrorX( symbol.transform().mirror_x() );
-    SetMirrorY( symbol.transform().mirror_y() );
+bool SCH_SYMBOL::Deserialize( const kiapi::schematic::types::SchematicSymbolInstance& aSymbol )
+{
+    using namespace kiapi::common;
+    using namespace kiapi::common::types;
+    using namespace kiapi::schematic::types;
 
-    const SchematicSymbol& def = symbol.definition();
+    const_cast<::KIID&>( m_Uuid ) = ::KIID( aSymbol.id().value() );
+    SetPosition( UnpackVector2( aSymbol.position(), schIUScale ) );
+    SetLocked( aSymbol.locked() == LockedState::LS_LOCKED );
+    SetFieldsAutoplaced( aSymbol.fields_autoplaced() ? AUTOPLACE_AUTO : AUTOPLACE_NONE );
+    kiapi::common::UnpackCustomProperties( aSymbol.custom_properties(), *this );
+
+    if( !aSymbol.has_lib_id() )
+        SetSchSymbolLibraryName( UnpackLibId( aSymbol.lib_id() ).Format() );
+
+    SetPassthroughMode( FromProtoEnum<SCH_SYMBOL::PASSTHROUGH_MODE>( aSymbol.passthrough() ) );
+    SetOrientationProp( FromProtoEnum<SYMBOL_ORIENTATION_PROP>( aSymbol.transform().orientation() ) );
+    SetMirrorX( aSymbol.transform().mirror_x() );
+    SetMirrorY( aSymbol.transform().mirror_y() );
+
+    const SchematicSymbol& def = aSymbol.definition();
 
     LIB_ID libId = UnpackLibId( def.id() );
     m_lib_id = libId;
@@ -1027,18 +1042,18 @@ bool SCH_SYMBOL::Deserialize( const google::protobuf::Any& aContainer )
 
     SetLibSymbol( libSymbol );
 
-    if( symbol.has_body_style() )
-        SetBodyStyle( symbol.body_style().style() );
+    if( aSymbol.has_body_style() )
+        SetBodyStyle( aSymbol.body_style().style() );
 
-    GetField( FIELD_T::REFERENCE )->Deserialize( symbol.reference_field(), schIUScale );
-    GetField( FIELD_T::VALUE )->Deserialize( symbol.value_field(), schIUScale );
-    GetField( FIELD_T::FOOTPRINT )->Deserialize( symbol.footprint_field(), schIUScale );
-    GetField( FIELD_T::DATASHEET )->Deserialize( symbol.datasheet_field(), schIUScale );
-    GetField( FIELD_T::DESCRIPTION )->Deserialize( symbol.description_field(), schIUScale );
+    GetField( FIELD_T::REFERENCE )->Deserialize( aSymbol.reference_field(), schIUScale );
+    GetField( FIELD_T::VALUE )->Deserialize( aSymbol.value_field(), schIUScale );
+    GetField( FIELD_T::FOOTPRINT )->Deserialize( aSymbol.footprint_field(), schIUScale );
+    GetField( FIELD_T::DATASHEET )->Deserialize( aSymbol.datasheet_field(), schIUScale );
+    GetField( FIELD_T::DESCRIPTION )->Deserialize( aSymbol.description_field(), schIUScale );
 
     std::set<wxString> incoming;
 
-    for( const SchematicField& fieldProto : symbol.user_fields() )
+    for( const SchematicField& fieldProto : aSymbol.user_fields() )
     {
         wxString   name = wxString::FromUTF8( fieldProto.name() );
         SCH_FIELD* existing = GetField( name );
@@ -1065,9 +1080,9 @@ bool SCH_SYMBOL::Deserialize( const google::protobuf::Any& aContainer )
     for( const wxString& name : toRemove )
         RemoveField( name );
 
-    SetShowPinNames( symbol.show_pin_names() );
-    SetShowPinNumbers( symbol.show_pin_numbers() );
-    SetPinNameOffset( UnpackDistance( symbol.pin_name_offset(), schIUScale ) );
+    SetShowPinNames( aSymbol.show_pin_names() );
+    SetShowPinNumbers( aSymbol.show_pin_numbers() );
+    SetPinNameOffset( UnpackDistance( aSymbol.pin_name_offset(), schIUScale ) );
 
     // The proto is storing a single pin struct that has the UUID and alternate selection
     // as well as the library pin definition.  Deserializing the pin will have set up most

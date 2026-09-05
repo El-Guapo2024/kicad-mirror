@@ -242,6 +242,12 @@ bool PackSymbol( kiapi::schematic::types::SchematicSymbolInstance* aOutput, cons
 
         for( const auto& [key, value] : variantInfo.m_Fields )
             ( *variant->mutable_fields() )[std::string( key.ToUTF8() )] = value.ToUTF8();
+
+        if( variantInfo.m_SymbolOverride )
+            PackLibId( variant->mutable_symbol_override(), *variantInfo.m_SymbolOverride );
+
+        if( !variantInfo.m_PinMapOverride.IsDefault() )
+            PackPinMapOverride( variant->mutable_pin_map_override(), variantInfo.m_PinMapOverride );
     }
 
     return true;
@@ -253,10 +259,7 @@ bool UnpackSymbol( SCH_SYMBOL* aOutput, const kiapi::schematic::types::Schematic
     using namespace kiapi::common::types;
     using namespace kiapi::schematic::types;
 
-    google::protobuf::Any any;
-    any.PackFrom( aInput );
-
-    if( !aOutput->Deserialize( any ) )
+    if( !aOutput->Deserialize( aInput ) )
         return false;
 
     if( aInput.has_attributes() )
@@ -270,8 +273,8 @@ bool UnpackSymbol( SCH_SYMBOL* aOutput, const kiapi::schematic::types::Schematic
         aOutput->SetDNP( attrs.do_not_populate() );
     }
 
-    if( aInput.has_pin_map_override() )
-        aOutput->SetPinMapOverride( UnpackPinMapOverride( aInput.pin_map_override() ) );
+    aOutput->SetPinMapOverride( aInput.has_pin_map_override() ? UnpackPinMapOverride( aInput.pin_map_override() )
+                                                              : PIN_MAP_INSTANCE_OVERRIDE() );
 
     return true;
 }
@@ -294,9 +297,6 @@ static void registerVariant( SCHEMATIC* aSchematic, const wxString& aName,
 
 
 /// Make the set of variant records on one placement of a symbol match @a aInput, by name.
-///
-/// Each surviving record keeps what the message does not carry: the attributes it leaves unset,
-/// and the alternate symbol and pin-map overrides the message has no field for.
 static void applySymbolVariants( SCH_SYMBOL* aSymbol,
                                  const kiapi::schematic::types::SchematicSymbolVariants& aInput,
                                  const SCH_SHEET_PATH& aPath, SCHEMATIC* aSchematic )
@@ -341,6 +341,16 @@ static void applySymbolVariants( SCH_SYMBOL* aSymbol,
                 }
             }
         }
+
+        if( variantProto.has_symbol_override() )
+            aSymbol->SetVariantSymbolOverride( aPath, name, UnpackLibId( variantProto.symbol_override() ) );
+        else
+            aSymbol->ClearVariantSymbolOverride( aPath, name );
+
+        if( variantProto.has_pin_map_override() )
+            aSymbol->SetPinMapOverride( UnpackPinMapOverride( variantProto.pin_map_override() ), &aPath, name );
+        else
+            aSymbol->SetPinMapOverride( PIN_MAP_INSTANCE_OVERRIDE(), &aPath, name );
 
         for( const auto& [key, value] : variantProto.fields() )
         {

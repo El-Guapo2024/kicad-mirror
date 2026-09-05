@@ -427,6 +427,12 @@ message SchematicSymbolVariant
   // The fields this variant overrides, keyed by field name.  Fields left out resolve to the
   // symbol's own value.
   map<string, string> fields = 4;
+
+  // Alternate library symbol used in this variant
+  optional kiapi.common.types.LibraryIdentifier symbol_override = 5;
+
+  // Per-variant pin-to-pad map override
+  optional kiapi.schematic.types.PinMapInstanceOverride pin_map_override = 6;
 }
 
 // All variants for a symbol
@@ -609,21 +615,19 @@ message SchematicSymbolInstance
   bool show_pin_numbers = 16;
   kiapi.common.types.Distance pin_name_offset = 17;
 
-  reserved 18;   // repeated SchematicSymbolVariant, superseded by the SchematicSymbolVariants set
+  SchematicSymbolVariants variants = 18;
 
   repeated SchematicField user_fields = 19;
   PinMapInstanceOverride pin_map_override = 20;
   bool fields_autoplaced = 21;
 
-  // Symbol library name override; empty means use the definition lib id
-  string lib_name = 22;
+  // May be different from definition.id in case the library symbol name changed since the
+  // symbol was placed
+  kiapi.common.types.LibraryIdentifier lib_id = 22;
 
   SchematicPassthroughMode passthrough = 23;
 
   repeated kiapi.common.types.CustomProperty custom_properties = 24;
-
-  // The variants carried by this instance.
-  SchematicSymbolVariants variants = 25;
 }
 
 message SheetInstance

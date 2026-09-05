@@ -606,6 +606,11 @@ public:
     const std::set<wxString>& GetVariantNames() const { return m_variantNames; }
 
     /**
+     * Return true if a variant with this name exists in the schematic (case-insensitively).
+     */
+    bool HasVariant( const wxString& aVariantName ) const;
+
+    /**
      * Return the description for a variant.
      *
      * @param aVariantName is the name of the variant.

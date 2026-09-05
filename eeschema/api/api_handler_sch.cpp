@@ -38,6 +38,7 @@
 #include <common.h>
 #include <connection_graph.h>
 #include <sch_commit.h>
+#include <string_utils.h>
 #include <sch_edit_frame.h>
 #include <sch_label.h>
 #include <sch_screen.h>
@@ -160,8 +161,15 @@ API_HANDLER_SCH::API_HANDLER_SCH( std::shared_ptr<SCH_CONTEXT> aContext,
     registerHandler<CrossProbeAnnounce, CrossProbeAnnounceResponse>( &API_HANDLER_SCH::handleCrossProbeAnnounce );
     registerHandler<SyncSelection, SyncSelectionResponse>( &API_HANDLER_SCH::handleSyncSelection );
     registerHandler<HighlightNets, HighlightNetsResponse>( &API_HANDLER_SCH::handleHighlightNets );
-    registerHandler<GetSchematicVariants, SchematicVariantsResponse>(
-            &API_HANDLER_SCH::handleGetSchematicVariants );
+    registerHandler<GetVariants, VariantsResponse>( &API_HANDLER_SCH::handleGetVariants );
+    registerHandler<AddVariant, Empty>( &API_HANDLER_SCH::handleAddVariant );
+    registerHandler<DeleteVariant, Empty>( &API_HANDLER_SCH::handleDeleteVariant );
+    registerHandler<RenameVariant, Empty>( &API_HANDLER_SCH::handleRenameVariant );
+    registerHandler<CopyVariant, Empty>( &API_HANDLER_SCH::handleCopyVariant );
+    registerHandler<SetVariantDescription, Empty>( &API_HANDLER_SCH::handleSetVariantDescription );
+    registerHandler<SetCurrentVariant, Empty>( &API_HANDLER_SCH::handleSetCurrentVariant );
+    registerHandler<GetCurrentVariant, CurrentVariantResponse>(
+            &API_HANDLER_SCH::handleGetCurrentVariant );
     registerHandler<ExpandTextVariables, ExpandTextVariablesResponse>(
             &API_HANDLER_SCH::handleExpandTextVariables );
 }
@@ -2196,31 +2204,6 @@ HANDLER_RESULT<HighlightNetsResponse> API_HANDLER_SCH::handleHighlightNets(
 
 
 
-HANDLER_RESULT<kiapi::schematic::commands::SchematicVariantsResponse>
-API_HANDLER_SCH::handleGetSchematicVariants(
-        const HANDLER_CONTEXT<kiapi::schematic::commands::GetSchematicVariants>& aCtx )
-{
-    HANDLER_RESULT<bool> documentValidation = validateDocument( aCtx.Request.document() );
-
-    if( !documentValidation )
-        return tl::unexpected( documentValidation.error() );
-
-    kiapi::schematic::commands::SchematicVariantsResponse response;
-    response.mutable_document()->CopyFrom( aCtx.Request.document() );
-
-    for( const wxString& name : schematic()->GetVariantNames() )
-    {
-        kiapi::schematic::commands::SchematicVariant* variant = response.add_variants();
-        variant->set_name( name.ToUTF8() );
-        variant->set_description( schematic()->GetVariantDescription( name ).ToUTF8() );
-    }
-
-    response.set_current_variant( schematic()->GetCurrentVariant().ToUTF8() );
-
-    return response;
-}
-
-
 HANDLER_RESULT<ExpandTextVariablesResponse>
 API_HANDLER_SCH::handleExpandTextVariables( const HANDLER_CONTEXT<ExpandTextVariables>& aCtx )
 {
@@ -2262,4 +2245,308 @@ API_HANDLER_SCH::handleExpandTextVariables( const HANDLER_CONTEXT<ExpandTextVari
     }
 
     return reply;
+}
+
+
+HANDLER_RESULT<VariantsResponse> API_HANDLER_SCH::handleGetVariants( const HANDLER_CONTEXT<GetVariants>& aCtx )
+{
+    if( aCtx.Request.document().type() != DocumentType::DOCTYPE_SCHEMATIC )
+        return tl::unexpected( MakeResponseStatus( AS_UNHANDLED ) );
+
+    if( std::optional<ApiResponseStatus> busy = checkForBusy() )
+        return tl::unexpected( *busy );
+
+    if( HANDLER_RESULT<bool> documentValidation = validateDocument( aCtx.Request.document() ); !documentValidation )
+        return tl::unexpected( documentValidation.error() );
+
+    VariantsResponse response;
+
+    response.mutable_document()->CopyFrom( aCtx.Request.document() );
+
+    for( const wxString& name : schematic()->GetVariantNames() )
+    {
+        types::DesignVariant* var = response.add_variants();
+        var->set_name( name.ToUTF8() );
+        var->set_description( schematic()->GetVariantDescription( name ).ToUTF8() );
+    }
+
+    return response;
+}
+
+
+HANDLER_RESULT<Empty> API_HANDLER_SCH::handleAddVariant( const HANDLER_CONTEXT<AddVariant>& aCtx )
+{
+    if( aCtx.Request.document().type() != DocumentType::DOCTYPE_SCHEMATIC )
+        return tl::unexpected( MakeResponseStatus( AS_UNHANDLED ) );
+
+    if( std::optional<ApiResponseStatus> busy = checkForBusy() )
+        return tl::unexpected( *busy );
+
+    if( HANDLER_RESULT<bool> documentValidation = validateDocument( aCtx.Request.document() ); !documentValidation )
+        return tl::unexpected( documentValidation.error() );
+
+    SCHEMATIC* schematic = this->schematic();
+    wxString   name = wxString::FromUTF8( aCtx.Request.name() );
+
+    if( name.IsEmpty() || name.CmpNoCase( GetDefaultVariantName() ) == 0 || schematic->HasVariant( name ) )
+    {
+        ApiResponseStatus e;
+        e.set_status( ApiStatusCode::AS_BAD_REQUEST );
+        e.set_error_message( fmt::format( "'{}' is not a usable new variant name", aCtx.Request.name() ) );
+        return tl::unexpected( e );
+    }
+
+    schematic->AddVariant( name );
+
+    if( aCtx.Request.has_description() )
+        schematic->SetVariantDescription( name, wxString::FromUTF8( aCtx.Request.description() ) );
+
+    if( m_frame )
+        m_frame->UpdateVariantSelectionCtrl( m_frame->Schematic().GetVariantNamesForUI() );
+
+    return Empty();
+}
+
+
+HANDLER_RESULT<Empty> API_HANDLER_SCH::handleDeleteVariant( const HANDLER_CONTEXT<DeleteVariant>& aCtx )
+{
+    if( aCtx.Request.document().type() != DocumentType::DOCTYPE_SCHEMATIC )
+        return tl::unexpected( MakeResponseStatus( AS_UNHANDLED ) );
+
+    if( std::optional<ApiResponseStatus> busy = checkForBusy() )
+        return tl::unexpected( *busy );
+
+    if( HANDLER_RESULT<bool> documentValidation = validateDocument( aCtx.Request.document() ); !documentValidation )
+        return tl::unexpected( documentValidation.error() );
+
+    SCH_COMMIT commit( m_frame ? m_frame->GetToolManager() : toolManager() );
+
+    SCHEMATIC* schematic = this->schematic();
+    wxString   name = wxString::FromUTF8( aCtx.Request.name() );
+
+    if( name.IsEmpty() || name.CmpNoCase( GetDefaultVariantName() ) == 0 )
+    {
+        ApiResponseStatus e;
+        e.set_status( ApiStatusCode::AS_BAD_REQUEST );
+        e.set_error_message( fmt::format( "'{}' is not a valid variant name", aCtx.Request.name() ) );
+        return tl::unexpected( e );
+    }
+
+    if( !schematic->HasVariant( name ) )
+    {
+        ApiResponseStatus e;
+        e.set_status( ApiStatusCode::AS_BAD_REQUEST );
+        e.set_error_message( fmt::format( "no variant named '{}' exists", aCtx.Request.name() ) );
+        return tl::unexpected( e );
+    }
+
+    schematic->DeleteVariant( name, &commit );
+
+    if( m_frame )
+    {
+        if( m_frame->Schematic().GetCurrentVariant().CmpNoCase( name ) == 0 )
+            m_frame->SetCurrentVariant( wxEmptyString );
+
+        m_frame->UpdateVariantSelectionCtrl( m_frame->Schematic().GetVariantNamesForUI() );
+        m_frame->GetCanvas()->Refresh();
+    }
+
+    return Empty();
+}
+
+
+HANDLER_RESULT<Empty> API_HANDLER_SCH::handleRenameVariant( const HANDLER_CONTEXT<RenameVariant>& aCtx )
+{
+    if( aCtx.Request.document().type() != DocumentType::DOCTYPE_SCHEMATIC )
+        return tl::unexpected( MakeResponseStatus( AS_UNHANDLED ) );
+
+    if( std::optional<ApiResponseStatus> busy = checkForBusy() )
+        return tl::unexpected( *busy );
+
+    if( HANDLER_RESULT<bool> documentValidation = validateDocument( aCtx.Request.document() ); !documentValidation )
+        return tl::unexpected( documentValidation.error() );
+
+    SCH_COMMIT commit( m_frame ? m_frame->GetToolManager() : toolManager() );
+
+    SCHEMATIC* schematic = this->schematic();
+    wxString   oldName = wxString::FromUTF8( aCtx.Request.old_name() );
+    wxString   newName = wxString::FromUTF8( aCtx.Request.new_name() );
+
+    if( oldName.IsEmpty() || oldName.CmpNoCase( GetDefaultVariantName() ) == 0 )
+    {
+        ApiResponseStatus e;
+        e.set_status( ApiStatusCode::AS_BAD_REQUEST );
+        e.set_error_message( fmt::format( "'{}' is not a valid variant name", aCtx.Request.old_name() ) );
+        return tl::unexpected( e );
+    }
+
+    if( newName.IsEmpty() || newName.CmpNoCase( GetDefaultVariantName() ) == 0 )
+    {
+        ApiResponseStatus e;
+        e.set_status( ApiStatusCode::AS_BAD_REQUEST );
+        e.set_error_message( fmt::format( "'{}' is not a valid variant name", aCtx.Request.new_name() ) );
+        return tl::unexpected( e );
+    }
+
+    if( !schematic->HasVariant( oldName ) )
+    {
+        ApiResponseStatus e;
+        e.set_status( ApiStatusCode::AS_BAD_REQUEST );
+        e.set_error_message( fmt::format( "no variant named '{}' exists", aCtx.Request.old_name() ) );
+        return tl::unexpected( e );
+    }
+
+    if( schematic->HasVariant( newName ) )
+    {
+        ApiResponseStatus e;
+        e.set_status( ApiStatusCode::AS_BAD_REQUEST );
+        e.set_error_message( fmt::format( "a variant named '{}' already exists", aCtx.Request.new_name() ) );
+        return tl::unexpected( e );
+    }
+
+    schematic->RenameVariant( oldName, newName, &commit );
+
+    if( m_frame )
+        m_frame->UpdateVariantSelectionCtrl( m_frame->Schematic().GetVariantNamesForUI() );
+
+    return Empty();
+}
+
+
+HANDLER_RESULT<Empty> API_HANDLER_SCH::handleCopyVariant( const HANDLER_CONTEXT<CopyVariant>& aCtx )
+{
+    if( aCtx.Request.document().type() != DocumentType::DOCTYPE_SCHEMATIC )
+        return tl::unexpected( MakeResponseStatus( AS_UNHANDLED ) );
+
+    if( std::optional<ApiResponseStatus> busy = checkForBusy() )
+        return tl::unexpected( *busy );
+
+    if( HANDLER_RESULT<bool> documentValidation = validateDocument( aCtx.Request.document() ); !documentValidation )
+        return tl::unexpected( documentValidation.error() );
+
+    SCH_COMMIT commit( m_frame ? m_frame->GetToolManager() : toolManager() );
+
+    SCHEMATIC* schematic = this->schematic();
+    wxString   oldName = wxString::FromUTF8( aCtx.Request.old_name() );
+    wxString   newName = wxString::FromUTF8( aCtx.Request.new_name() );
+
+    if( oldName.IsEmpty() || oldName.CmpNoCase( GetDefaultVariantName() ) == 0 )
+    {
+        ApiResponseStatus e;
+        e.set_status( ApiStatusCode::AS_BAD_REQUEST );
+        e.set_error_message( fmt::format( "'{}' is not a valid variant name", aCtx.Request.old_name() ) );
+        return tl::unexpected( e );
+    }
+
+    if( newName.IsEmpty() || newName.CmpNoCase( GetDefaultVariantName() ) == 0 )
+    {
+        ApiResponseStatus e;
+        e.set_status( ApiStatusCode::AS_BAD_REQUEST );
+        e.set_error_message( fmt::format( "'{}' is not a valid variant name", aCtx.Request.new_name() ) );
+        return tl::unexpected( e );
+    }
+
+    if( !schematic->HasVariant( oldName ) )
+    {
+        ApiResponseStatus e;
+        e.set_status( ApiStatusCode::AS_BAD_REQUEST );
+        e.set_error_message( fmt::format( "no variant named '{}' exists", aCtx.Request.old_name() ) );
+        return tl::unexpected( e );
+    }
+
+    if( schematic->HasVariant( newName ) )
+    {
+        ApiResponseStatus e;
+        e.set_status( ApiStatusCode::AS_BAD_REQUEST );
+        e.set_error_message( fmt::format( "a variant named '{}' already exists", aCtx.Request.new_name() ) );
+        return tl::unexpected( e );
+    }
+
+    schematic->CopyVariant( oldName, newName, &commit );
+
+    if( m_frame )
+        m_frame->UpdateVariantSelectionCtrl( m_frame->Schematic().GetVariantNamesForUI() );
+
+    return Empty();
+}
+
+
+HANDLER_RESULT<Empty> API_HANDLER_SCH::handleSetVariantDescription( const HANDLER_CONTEXT<SetVariantDescription>& aCtx )
+{
+    if( aCtx.Request.document().type() != DocumentType::DOCTYPE_SCHEMATIC )
+        return tl::unexpected( MakeResponseStatus( AS_UNHANDLED ) );
+
+    if( std::optional<ApiResponseStatus> busy = checkForBusy() )
+        return tl::unexpected( *busy );
+
+    if( HANDLER_RESULT<bool> documentValidation = validateDocument( aCtx.Request.document() ); !documentValidation )
+        return tl::unexpected( documentValidation.error() );
+
+    SCHEMATIC* schematic = this->schematic();
+    wxString   name = wxString::FromUTF8( aCtx.Request.name() );
+
+    if( name.IsEmpty() || name.CmpNoCase( GetDefaultVariantName() ) == 0 || !schematic->HasVariant( name ) )
+    {
+        ApiResponseStatus e;
+        e.set_status( ApiStatusCode::AS_BAD_REQUEST );
+        e.set_error_message( fmt::format( "no variant named '{}' exists", aCtx.Request.name() ) );
+        return tl::unexpected( e );
+    }
+
+    schematic->SetVariantDescription( name, wxString::FromUTF8( aCtx.Request.description() ) );
+
+    return Empty();
+}
+
+
+HANDLER_RESULT<Empty> API_HANDLER_SCH::handleSetCurrentVariant( const HANDLER_CONTEXT<SetCurrentVariant>& aCtx )
+{
+    if( aCtx.Request.document().type() != DocumentType::DOCTYPE_SCHEMATIC )
+        return tl::unexpected( MakeResponseStatus( AS_UNHANDLED ) );
+
+    if( std::optional<ApiResponseStatus> busy = checkForBusy() )
+        return tl::unexpected( *busy );
+
+    if( HANDLER_RESULT<bool> documentValidation = validateDocument( aCtx.Request.document() ); !documentValidation )
+        return tl::unexpected( documentValidation.error() );
+
+    SCHEMATIC* schematic = this->schematic();
+
+    if( aCtx.Request.has_name() && !aCtx.Request.name().empty() )
+    {
+        if( wxString name = wxString::FromUTF8( aCtx.Request.name() ); !schematic->HasVariant( name ) )
+        {
+            ApiResponseStatus e;
+            e.set_status( ApiStatusCode::AS_BAD_REQUEST );
+            e.set_error_message( fmt::format( "no variant named '{}' exists", aCtx.Request.name() ) );
+            return tl::unexpected( e );
+        }
+    }
+
+    wxString name = aCtx.Request.has_name() ? wxString::FromUTF8( aCtx.Request.name() ) : wxString();
+
+    if( m_frame )
+        m_frame->SetCurrentVariant( name );
+    else
+        schematic->SetCurrentVariant( name );
+
+    return Empty();
+}
+
+
+HANDLER_RESULT<CurrentVariantResponse>
+API_HANDLER_SCH::handleGetCurrentVariant( const HANDLER_CONTEXT<GetCurrentVariant>& aCtx )
+{
+    if( aCtx.Request.document().type() != DocumentType::DOCTYPE_SCHEMATIC )
+        return tl::unexpected( MakeResponseStatus( AS_UNHANDLED ) );
+
+    if( HANDLER_RESULT<bool> documentValidation = validateDocument( aCtx.Request.document() ); !documentValidation )
+        return tl::unexpected( documentValidation.error() );
+
+    CurrentVariantResponse response;
+
+    if( wxString current = schematic()->GetCurrentVariant(); !current.IsEmpty() )
+        response.set_name( current.ToUTF8() );
+
+    return response;
 }

@@ -2423,6 +2423,18 @@ wxString SCHEMATIC::GetCurrentVariant() const
 }
 
 
+bool SCHEMATIC::HasVariant( const wxString& aVariantName ) const
+{
+    for( const wxString& name : m_variantNames )
+    {
+        if( name.CmpNoCase( aVariantName ) == 0 )
+            return true;
+    }
+
+    return false;
+}
+
+
 void SCHEMATIC::SetCurrentVariant( const wxString& aVariantName )
 {
     wxString newVariant;
@@ -2476,6 +2488,9 @@ void SCHEMATIC::DeleteVariant( const wxString& aVariantName, SCH_COMMIT* aCommit
     SCH_SCREENS allScreens( m_rootSheet );
 
     allScreens.DeleteVariant( aVariantName, aCommit );
+
+    if( m_currentVariant == aVariantName )
+        SetCurrentVariant( wxEmptyString );
 
     m_variantNames.erase( aVariantName );
     Settings().m_VariantDescriptions.erase( aVariantName );
