@@ -36,6 +36,17 @@ const wxChar* const traceApi = wxT( "KICAD_API" );
 namespace kiapi::common
 {
 
+KICOMMON_API ApiResponseStatus MakeResponseStatus( ApiStatusCode aCode, const std::string& aMessage )
+{
+    ApiResponseStatus s;
+    s.set_status( aCode );
+
+    if( !aMessage.empty() )
+        s.set_error_message( aMessage );
+
+    return s;
+}
+
 KICOMMON_API std::optional<KICAD_T> TypeNameFromAny( const google::protobuf::Any& aMessage )
 {
     if( aMessage.type_url() == "type.googleapis.com/kiapi.schematic.types.BusEntry" )

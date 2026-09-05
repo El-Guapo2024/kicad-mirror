@@ -2825,13 +2825,16 @@ HANDLER_RESULT<HighlightNetsResponse> API_HANDLER_PCB::handleHighlightNets(
 
 HANDLER_RESULT<VariantsResponse> API_HANDLER_PCB::handleGetVariants( const HANDLER_CONTEXT<GetVariants>& aCtx )
 {
+    if( aCtx.Request.document().type() != DocumentType::DOCTYPE_PCB )
+        return tl::unexpected( MakeResponseStatus( AS_UNHANDLED ) );
+
     if( std::optional<ApiResponseStatus> busy = checkForBusy() )
         return tl::unexpected( *busy );
 
     if( HANDLER_RESULT<bool> documentValidation = validateDocument( aCtx.Request.document() ); !documentValidation )
         return tl::unexpected( documentValidation.error() );
 
-    BOARD* board = frame()->GetBoard();
+    BOARD* board = pcbContext()->GetBoard();
     VariantsResponse response;
 
     response.mutable_document()->CopyFrom( aCtx.Request.document() );
@@ -2849,13 +2852,16 @@ HANDLER_RESULT<VariantsResponse> API_HANDLER_PCB::handleGetVariants( const HANDL
 
 HANDLER_RESULT<Empty> API_HANDLER_PCB::handleAddVariant( const HANDLER_CONTEXT<AddVariant>& aCtx )
 {
+    if( aCtx.Request.document().type() != DocumentType::DOCTYPE_PCB )
+        return tl::unexpected( MakeResponseStatus( AS_UNHANDLED ) );
+
     if( std::optional<ApiResponseStatus> busy = checkForBusy() )
         return tl::unexpected( *busy );
 
     if( HANDLER_RESULT<bool> documentValidation = validateDocument( aCtx.Request.document() ); !documentValidation )
         return tl::unexpected( documentValidation.error() );
 
-    BOARD* board = frame()->GetBoard();
+    BOARD* board = pcbContext()->GetBoard();
 
     wxString name = wxString::FromUTF8( aCtx.Request.name() );
 
@@ -2880,7 +2886,8 @@ HANDLER_RESULT<Empty> API_HANDLER_PCB::handleAddVariant( const HANDLER_CONTEXT<A
     if( aCtx.Request.has_description() )
         board->SetVariantDescription( name, wxString::FromUTF8( aCtx.Request.description() ) );
 
-    frame()->UpdateVariantSelectionCtrl();
+    if( frame() )
+        frame()->UpdateVariantSelectionCtrl();
 
     return Empty();
 }
@@ -2888,13 +2895,16 @@ HANDLER_RESULT<Empty> API_HANDLER_PCB::handleAddVariant( const HANDLER_CONTEXT<A
 
 HANDLER_RESULT<Empty> API_HANDLER_PCB::handleDeleteVariant( const HANDLER_CONTEXT<DeleteVariant>& aCtx )
 {
+    if( aCtx.Request.document().type() != DocumentType::DOCTYPE_PCB )
+        return tl::unexpected( MakeResponseStatus( AS_UNHANDLED ) );
+
     if( std::optional<ApiResponseStatus> busy = checkForBusy() )
         return tl::unexpected( *busy );
 
     if( HANDLER_RESULT<bool> documentValidation = validateDocument( aCtx.Request.document() ); !documentValidation )
         return tl::unexpected( documentValidation.error() );
 
-    BOARD* board = frame()->GetBoard();
+    BOARD* board = pcbContext()->GetBoard();
 
     wxString name = wxString::FromUTF8( aCtx.Request.name() );
 
@@ -2915,7 +2925,9 @@ HANDLER_RESULT<Empty> API_HANDLER_PCB::handleDeleteVariant( const HANDLER_CONTEX
     }
 
     board->DeleteVariant( name );
-    frame()->UpdateVariantSelectionCtrl();
+
+    if( frame() )
+        frame()->UpdateVariantSelectionCtrl();
 
     return Empty();
 }
@@ -2923,13 +2935,16 @@ HANDLER_RESULT<Empty> API_HANDLER_PCB::handleDeleteVariant( const HANDLER_CONTEX
 
 HANDLER_RESULT<Empty> API_HANDLER_PCB::handleRenameVariant( const HANDLER_CONTEXT<RenameVariant>& aCtx )
 {
+    if( aCtx.Request.document().type() != DocumentType::DOCTYPE_PCB )
+        return tl::unexpected( MakeResponseStatus( AS_UNHANDLED ) );
+
     if( std::optional<ApiResponseStatus> busy = checkForBusy() )
         return tl::unexpected( *busy );
 
     if( HANDLER_RESULT<bool> documentValidation = validateDocument( aCtx.Request.document() ); !documentValidation )
         return tl::unexpected( documentValidation.error() );
 
-    BOARD* board = frame()->GetBoard();
+    BOARD* board = pcbContext()->GetBoard();
 
     wxString oldName = wxString::FromUTF8( aCtx.Request.old_name() );
     wxString newName = wxString::FromUTF8( aCtx.Request.new_name() );
@@ -2967,7 +2982,9 @@ HANDLER_RESULT<Empty> API_HANDLER_PCB::handleRenameVariant( const HANDLER_CONTEX
     }
 
     board->RenameVariant( oldName, newName );
-    frame()->UpdateVariantSelectionCtrl();
+
+    if( frame() )
+        frame()->UpdateVariantSelectionCtrl();
 
     return Empty();
 }
@@ -2975,13 +2992,16 @@ HANDLER_RESULT<Empty> API_HANDLER_PCB::handleRenameVariant( const HANDLER_CONTEX
 
 HANDLER_RESULT<Empty> API_HANDLER_PCB::handleCopyVariant( const HANDLER_CONTEXT<CopyVariant>& aCtx )
 {
+    if( aCtx.Request.document().type() != DocumentType::DOCTYPE_PCB )
+        return tl::unexpected( MakeResponseStatus( AS_UNHANDLED ) );
+
     if( std::optional<ApiResponseStatus> busy = checkForBusy() )
         return tl::unexpected( *busy );
 
     if( HANDLER_RESULT<bool> documentValidation = validateDocument( aCtx.Request.document() ); !documentValidation )
         return tl::unexpected( documentValidation.error() );
 
-    BOARD* board = frame()->GetBoard();
+    BOARD* board = pcbContext()->GetBoard();
 
     wxString oldName = wxString::FromUTF8( aCtx.Request.old_name() );
     wxString newName = wxString::FromUTF8( aCtx.Request.new_name() );
@@ -3021,7 +3041,9 @@ HANDLER_RESULT<Empty> API_HANDLER_PCB::handleCopyVariant( const HANDLER_CONTEXT<
     board->CopyVariant( oldName, newName,
                         aCtx.Request.has_new_description() ? wxString::FromUTF8( aCtx.Request.new_description() )
                                                            : wxString() );
-    frame()->UpdateVariantSelectionCtrl();
+
+    if( frame() )
+        frame()->UpdateVariantSelectionCtrl();
 
     return Empty();
 }
@@ -3029,13 +3051,16 @@ HANDLER_RESULT<Empty> API_HANDLER_PCB::handleCopyVariant( const HANDLER_CONTEXT<
 
 HANDLER_RESULT<Empty> API_HANDLER_PCB::handleSetVariantDescription( const HANDLER_CONTEXT<SetVariantDescription>& aCtx )
 {
+    if( aCtx.Request.document().type() != DocumentType::DOCTYPE_PCB )
+        return tl::unexpected( MakeResponseStatus( AS_UNHANDLED ) );
+
     if( std::optional<ApiResponseStatus> busy = checkForBusy() )
         return tl::unexpected( *busy );
 
     if( HANDLER_RESULT<bool> documentValidation = validateDocument( aCtx.Request.document() ); !documentValidation )
         return tl::unexpected( documentValidation.error() );
 
-    BOARD* board = frame()->GetBoard();
+    BOARD* board = pcbContext()->GetBoard();
 
     wxString name = wxString::FromUTF8( aCtx.Request.name() );
 
@@ -3055,13 +3080,16 @@ HANDLER_RESULT<Empty> API_HANDLER_PCB::handleSetVariantDescription( const HANDLE
 
 HANDLER_RESULT<Empty> API_HANDLER_PCB::handleSetCurrentVariant( const HANDLER_CONTEXT<SetCurrentVariant>& aCtx )
 {
+    if( aCtx.Request.document().type() != DocumentType::DOCTYPE_PCB )
+        return tl::unexpected( MakeResponseStatus( AS_UNHANDLED ) );
+
     if( std::optional<ApiResponseStatus> busy = checkForBusy() )
         return tl::unexpected( *busy );
 
     if( HANDLER_RESULT<bool> documentValidation = validateDocument( aCtx.Request.document() ); !documentValidation )
         return tl::unexpected( documentValidation.error() );
 
-    BOARD* board = frame()->GetBoard();
+    BOARD* board = pcbContext()->GetBoard();
 
     if( aCtx.Request.has_name() && !aCtx.Request.name().empty() )
     {
@@ -3074,7 +3102,12 @@ HANDLER_RESULT<Empty> API_HANDLER_PCB::handleSetCurrentVariant( const HANDLER_CO
         }
     }
 
-    frame()->SetCurrentVariant( aCtx.Request.has_name() ? wxString::FromUTF8( aCtx.Request.name() ) : wxString() );
+    wxString varName = aCtx.Request.has_name() ? wxString::FromUTF8( aCtx.Request.name() ) : wxString();
+
+    if( frame() )
+        frame()->SetCurrentVariant( varName );
+    else
+        board->SetCurrentVariant( varName );
 
     return Empty();
 }
