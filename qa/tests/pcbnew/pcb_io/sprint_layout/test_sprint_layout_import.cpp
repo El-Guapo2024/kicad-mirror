@@ -50,14 +50,14 @@ BOOST_FIXTURE_TEST_SUITE( SprintLayoutImport, SPRINT_LAYOUT_IMPORT_FIXTURE )
 
 BOOST_AUTO_TEST_CASE( CanReadLay6File )
 {
-    std::string path = KI_TEST::GetPcbnewTestDataDir() + "/io/sprint_layout/gpio2nesc.lay6";
+    std::string path = KI_TEST::GetPcbnewTestDataDir() + "/plugins/sprint_layout/gpio2nesc.lay6";
     BOOST_CHECK( m_plugin.CanReadBoard( path ) );
 }
 
 
 BOOST_AUTO_TEST_CASE( RejectsNonSprintLayoutFile )
 {
-    std::string kicadPath = KI_TEST::GetPcbnewTestDataDir() + "/io/geda/minimal_test.pcb";
+    std::string kicadPath = KI_TEST::GetPcbnewTestDataDir() + "/plugins/geda/minimal_test.pcb";
     BOOST_CHECK( !m_plugin.CanReadBoard( kicadPath ) );
 }
 
@@ -74,7 +74,7 @@ BOOST_AUTO_TEST_CASE( RejectsNonExistentFile )
 
 BOOST_AUTO_TEST_CASE( Gpio2nescBoardLoad )
 {
-    std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/io/sprint_layout/gpio2nesc.lay6";
+    std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/plugins/sprint_layout/gpio2nesc.lay6";
 
     std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
@@ -86,7 +86,7 @@ BOOST_AUTO_TEST_CASE( Gpio2nescBoardLoad )
 BOOST_AUTO_TEST_CASE( ReedDoorbellBoardLoad )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir()
-                           + "/io/sprint_layout/cacazi-a8-zigbee_cr2032_1.2mm.lay6";
+                           + "/plugins/sprint_layout/cacazi-a8-zigbee_cr2032_1.2mm.lay6";
 
     std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
@@ -98,7 +98,7 @@ BOOST_AUTO_TEST_CASE( ReedDoorbellBoardLoad )
 BOOST_AUTO_TEST_CASE( MdbRs232BoardLoad )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir()
-                           + "/io/sprint_layout/mdb-rs232.lay6";
+                           + "/plugins/sprint_layout/mdb-rs232.lay6";
 
     std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
@@ -109,7 +109,7 @@ BOOST_AUTO_TEST_CASE( MdbRs232BoardLoad )
 
 BOOST_AUTO_TEST_CASE( LoadBoardAppendToExisting )
 {
-    std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/io/sprint_layout/gpio2nesc.lay6";
+    std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/plugins/sprint_layout/gpio2nesc.lay6";
 
     // Load first into a fresh board
     std::unique_ptr<BOARD> baseBoard = m_plugin.LoadBoard( dataPath );
@@ -136,7 +136,7 @@ BOOST_AUTO_TEST_CASE( LoadBoardAppendToExisting )
 
 BOOST_AUTO_TEST_CASE( BoardHasOutline )
 {
-    std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/io/sprint_layout/gpio2nesc.lay6";
+    std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/plugins/sprint_layout/gpio2nesc.lay6";
 
     std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
@@ -162,7 +162,7 @@ BOOST_AUTO_TEST_CASE( BoardHasOutline )
 
 BOOST_AUTO_TEST_CASE( PadsInsideBoardOutline )
 {
-    std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/io/sprint_layout/gpio2nesc.lay6";
+    std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/plugins/sprint_layout/gpio2nesc.lay6";
 
     std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
@@ -223,7 +223,7 @@ BOOST_AUTO_TEST_CASE( PadsInsideBoardOutline )
 
 BOOST_AUTO_TEST_CASE( BoardHasCopperLayers )
 {
-    std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/io/sprint_layout/gpio2nesc.lay6";
+    std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/plugins/sprint_layout/gpio2nesc.lay6";
 
     std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
@@ -234,7 +234,7 @@ BOOST_AUTO_TEST_CASE( BoardHasCopperLayers )
 
 BOOST_AUTO_TEST_CASE( CachedLibraryFootprints )
 {
-    std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/io/sprint_layout/gpio2nesc.lay6";
+    std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/plugins/sprint_layout/gpio2nesc.lay6";
 
     std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
@@ -252,7 +252,7 @@ BOOST_AUTO_TEST_CASE( CachedLibraryFootprints )
 
 BOOST_AUTO_TEST_CASE( PadsHaveAttributes )
 {
-    std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/io/sprint_layout/gpio2nesc.lay6";
+    std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/plugins/sprint_layout/gpio2nesc.lay6";
 
     std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
@@ -284,7 +284,7 @@ BOOST_AUTO_TEST_CASE( PadsHaveAttributes )
 
 BOOST_AUTO_TEST_CASE( PadPositionsHavePositiveY )
 {
-    std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/io/sprint_layout/gpio2nesc.lay6";
+    std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/plugins/sprint_layout/gpio2nesc.lay6";
 
     std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
@@ -309,7 +309,7 @@ BOOST_AUTO_TEST_CASE( PadPositionsHavePositiveY )
 
 BOOST_AUTO_TEST_CASE( DrawingsExistOnCopperAndSilk )
 {
-    std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/io/sprint_layout/gpio2nesc.lay6";
+    std::string dataPath = KI_TEST::GetPcbnewTestDataDir() + "/plugins/sprint_layout/gpio2nesc.lay6";
 
     std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
@@ -340,22 +340,22 @@ BOOST_AUTO_TEST_CASE( DrawingsExistOnCopperAndSilk )
 BOOST_AUTO_TEST_CASE( AllTestFilesLoadWithoutCrash )
 {
     std::vector<std::string> files = {
-        "/io/sprint_layout/gpio2nesc.lay6",
-        "/io/sprint_layout/cacazi-a8-zigbee_cr2032_1.2mm.lay6",
-        "/io/sprint_layout/mdb-rs232.lay6",
-        "/io/sprint_layout/mdb-master-rev2a.lay6",
-        "/io/sprint_layout/smalldualrgb-withmask.lay6",
-        "/io/sprint_layout/amiga2000-remake.lay6",
-        "/io/sprint_layout/karpaty-rx-pcb1-bpf-orig.lay6",
-        "/io/sprint_layout/karpaty-rx-pcb2-rfamp-1st-mixer-orig.lay6",
-        "/io/sprint_layout/karpaty-rx-pcb3-vfo-orig.lay6",
-        "/io/sprint_layout/karpaty-rx-pcb5-buffer-freq-doubler-orig.lay6",
-        "/io/sprint_layout/karpaty-rx-pcb6-mainboard-orig.lay6",
-        "/io/sprint_layout/karpaty-rx-pcb7-power-supply-orig.lay6",
-        "/io/sprint_layout/ku14194revb.lay6",
-        "/io/sprint_layout/pcb100x40_v5.lay6",
-        "/io/sprint_layout/tfcc.lay6",
-        "/io/sprint_layout/12F629_SM.lay6",
+        "/plugins/sprint_layout/gpio2nesc.lay6",
+        "/plugins/sprint_layout/cacazi-a8-zigbee_cr2032_1.2mm.lay6",
+        "/plugins/sprint_layout/mdb-rs232.lay6",
+        "/plugins/sprint_layout/mdb-master-rev2a.lay6",
+        "/plugins/sprint_layout/smalldualrgb-withmask.lay6",
+        "/plugins/sprint_layout/amiga2000-remake.lay6",
+        "/plugins/sprint_layout/karpaty-rx-pcb1-bpf-orig.lay6",
+        "/plugins/sprint_layout/karpaty-rx-pcb2-rfamp-1st-mixer-orig.lay6",
+        "/plugins/sprint_layout/karpaty-rx-pcb3-vfo-orig.lay6",
+        "/plugins/sprint_layout/karpaty-rx-pcb5-buffer-freq-doubler-orig.lay6",
+        "/plugins/sprint_layout/karpaty-rx-pcb6-mainboard-orig.lay6",
+        "/plugins/sprint_layout/karpaty-rx-pcb7-power-supply-orig.lay6",
+        "/plugins/sprint_layout/ku14194revb.lay6",
+        "/plugins/sprint_layout/pcb100x40_v5.lay6",
+        "/plugins/sprint_layout/tfcc.lay6",
+        "/plugins/sprint_layout/12F629_SM.lay6",
     };
 
     for( const auto& file : files )
@@ -378,7 +378,7 @@ BOOST_AUTO_TEST_CASE( AllTestFilesLoadWithoutCrash )
 BOOST_AUTO_TEST_CASE( MmJoy2BoardLoad )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir()
-                           + "/io/sprint_layout/mmjoy2-74hc165.lay6";
+                           + "/plugins/sprint_layout/mmjoy2-74hc165.lay6";
 
     std::map<std::string, UTF8> props;
     props["pcb_id"] = "0";
@@ -400,7 +400,7 @@ BOOST_AUTO_TEST_CASE( MmJoy2BoardLoad )
 BOOST_AUTO_TEST_CASE( SmallDualRgbBoardLoad )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir()
-                           + "/io/sprint_layout/smalldualrgb-withmask.lay6";
+                           + "/plugins/sprint_layout/smalldualrgb-withmask.lay6";
 
     std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
@@ -412,7 +412,7 @@ BOOST_AUTO_TEST_CASE( SmallDualRgbBoardLoad )
 BOOST_AUTO_TEST_CASE( MdbMasterRev2aBoardLoad )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir()
-                           + "/io/sprint_layout/mdb-master-rev2a.lay6";
+                           + "/plugins/sprint_layout/mdb-master-rev2a.lay6";
 
     std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
@@ -429,7 +429,7 @@ BOOST_AUTO_TEST_CASE( MdbMasterRev2aBoardLoad )
 BOOST_AUTO_TEST_CASE( KarpatyBpfBoardLoad )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir()
-                           + "/io/sprint_layout/karpaty-rx-pcb1-bpf-orig.lay6";
+                           + "/plugins/sprint_layout/karpaty-rx-pcb1-bpf-orig.lay6";
 
     std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
@@ -441,7 +441,7 @@ BOOST_AUTO_TEST_CASE( KarpatyBpfBoardLoad )
 BOOST_AUTO_TEST_CASE( KarpatyRfAmpBoardLoad )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir()
-                           + "/io/sprint_layout/karpaty-rx-pcb2-rfamp-1st-mixer-orig.lay6";
+                           + "/plugins/sprint_layout/karpaty-rx-pcb2-rfamp-1st-mixer-orig.lay6";
 
     std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
@@ -453,7 +453,7 @@ BOOST_AUTO_TEST_CASE( KarpatyRfAmpBoardLoad )
 BOOST_AUTO_TEST_CASE( KarpatyVfoBoardLoad )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir()
-                           + "/io/sprint_layout/karpaty-rx-pcb3-vfo-orig.lay6";
+                           + "/plugins/sprint_layout/karpaty-rx-pcb3-vfo-orig.lay6";
 
     std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
@@ -465,7 +465,7 @@ BOOST_AUTO_TEST_CASE( KarpatyVfoBoardLoad )
 BOOST_AUTO_TEST_CASE( KarpatyBufferBoardLoad )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir()
-                           + "/io/sprint_layout/karpaty-rx-pcb5-buffer-freq-doubler-orig.lay6";
+                           + "/plugins/sprint_layout/karpaty-rx-pcb5-buffer-freq-doubler-orig.lay6";
 
     std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
@@ -477,7 +477,7 @@ BOOST_AUTO_TEST_CASE( KarpatyBufferBoardLoad )
 BOOST_AUTO_TEST_CASE( KarpatyMainboardBoardLoad )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir()
-                           + "/io/sprint_layout/karpaty-rx-pcb6-mainboard-orig.lay6";
+                           + "/plugins/sprint_layout/karpaty-rx-pcb6-mainboard-orig.lay6";
 
     std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
@@ -489,7 +489,7 @@ BOOST_AUTO_TEST_CASE( KarpatyMainboardBoardLoad )
 BOOST_AUTO_TEST_CASE( KarpatyPowerSupplyBoardLoad )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir()
-                           + "/io/sprint_layout/karpaty-rx-pcb7-power-supply-orig.lay6";
+                           + "/plugins/sprint_layout/karpaty-rx-pcb7-power-supply-orig.lay6";
 
     std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
@@ -505,7 +505,7 @@ BOOST_AUTO_TEST_CASE( KarpatyPowerSupplyBoardLoad )
 BOOST_AUTO_TEST_CASE( Ku14194RevBBoardLoad )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir()
-                           + "/io/sprint_layout/ku14194revb.lay6";
+                           + "/plugins/sprint_layout/ku14194revb.lay6";
 
     std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
@@ -517,7 +517,7 @@ BOOST_AUTO_TEST_CASE( Ku14194RevBBoardLoad )
 BOOST_AUTO_TEST_CASE( AntennaSwitchBoardLoad )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir()
-                           + "/io/sprint_layout/pcb100x40_v5.lay6";
+                           + "/plugins/sprint_layout/pcb100x40_v5.lay6";
 
     std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
@@ -529,7 +529,7 @@ BOOST_AUTO_TEST_CASE( AntennaSwitchBoardLoad )
 BOOST_AUTO_TEST_CASE( TfccBoardLoad )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir()
-                           + "/io/sprint_layout/tfcc.lay6";
+                           + "/plugins/sprint_layout/tfcc.lay6";
 
     std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
@@ -545,7 +545,7 @@ BOOST_AUTO_TEST_CASE( TfccBoardLoad )
 BOOST_AUTO_TEST_CASE( Amiga2000BoardLoad )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir()
-                           + "/io/sprint_layout/amiga2000-remake.lay6";
+                           + "/plugins/sprint_layout/amiga2000-remake.lay6";
 
     std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
@@ -566,21 +566,21 @@ BOOST_AUTO_TEST_CASE( Amiga2000BoardLoad )
 BOOST_AUTO_TEST_CASE( AllBoardsHaveConsistentPadCoordinates )
 {
     std::vector<std::string> files = {
-        "/io/sprint_layout/gpio2nesc.lay6",
-        "/io/sprint_layout/mdb-rs232.lay6",
-        "/io/sprint_layout/mdb-master-rev2a.lay6",
-        "/io/sprint_layout/smalldualrgb-withmask.lay6",
-        "/io/sprint_layout/amiga2000-remake.lay6",
-        "/io/sprint_layout/karpaty-rx-pcb1-bpf-orig.lay6",
-        "/io/sprint_layout/karpaty-rx-pcb2-rfamp-1st-mixer-orig.lay6",
-        "/io/sprint_layout/karpaty-rx-pcb3-vfo-orig.lay6",
-        "/io/sprint_layout/karpaty-rx-pcb5-buffer-freq-doubler-orig.lay6",
-        "/io/sprint_layout/karpaty-rx-pcb6-mainboard-orig.lay6",
-        "/io/sprint_layout/karpaty-rx-pcb7-power-supply-orig.lay6",
-        "/io/sprint_layout/ku14194revb.lay6",
-        "/io/sprint_layout/pcb100x40_v5.lay6",
-        "/io/sprint_layout/tfcc.lay6",
-        "/io/sprint_layout/12F629_SM.lay6",
+        "/plugins/sprint_layout/gpio2nesc.lay6",
+        "/plugins/sprint_layout/mdb-rs232.lay6",
+        "/plugins/sprint_layout/mdb-master-rev2a.lay6",
+        "/plugins/sprint_layout/smalldualrgb-withmask.lay6",
+        "/plugins/sprint_layout/amiga2000-remake.lay6",
+        "/plugins/sprint_layout/karpaty-rx-pcb1-bpf-orig.lay6",
+        "/plugins/sprint_layout/karpaty-rx-pcb2-rfamp-1st-mixer-orig.lay6",
+        "/plugins/sprint_layout/karpaty-rx-pcb3-vfo-orig.lay6",
+        "/plugins/sprint_layout/karpaty-rx-pcb5-buffer-freq-doubler-orig.lay6",
+        "/plugins/sprint_layout/karpaty-rx-pcb6-mainboard-orig.lay6",
+        "/plugins/sprint_layout/karpaty-rx-pcb7-power-supply-orig.lay6",
+        "/plugins/sprint_layout/ku14194revb.lay6",
+        "/plugins/sprint_layout/pcb100x40_v5.lay6",
+        "/plugins/sprint_layout/tfcc.lay6",
+        "/plugins/sprint_layout/12F629_SM.lay6",
     };
 
     for( const auto& file : files )
@@ -624,7 +624,7 @@ BOOST_AUTO_TEST_CASE( AllBoardsHaveConsistentPadCoordinates )
 BOOST_AUTO_TEST_CASE( MultiBoardFileHasFiveBoards )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir()
-                           + "/io/sprint_layout/mmjoy2-74hc165.lay6";
+                           + "/plugins/sprint_layout/mmjoy2-74hc165.lay6";
 
     SPRINT_LAYOUT_PARSER parser;
     BOOST_REQUIRE( parser.ParseBoard( dataPath ) );
@@ -637,7 +637,7 @@ BOOST_AUTO_TEST_CASE( MultiBoardFileHasFiveBoards )
 BOOST_AUTO_TEST_CASE( MultiBoardSelectByIndex )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir()
-                           + "/io/sprint_layout/mmjoy2-74hc165.lay6";
+                           + "/plugins/sprint_layout/mmjoy2-74hc165.lay6";
 
     SPRINT_LAYOUT_PARSER parser;
     BOOST_REQUIRE( parser.ParseBoard( dataPath ) );
@@ -664,7 +664,7 @@ BOOST_AUTO_TEST_CASE( MultiBoardSelectByIndex )
 BOOST_AUTO_TEST_CASE( MultiBoardCallbackInvoked )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir()
-                           + "/io/sprint_layout/mmjoy2-74hc165.lay6";
+                           + "/plugins/sprint_layout/mmjoy2-74hc165.lay6";
 
     PCB_IO_SPRINT_LAYOUT plugin;
     bool                 callbackInvoked = false;
@@ -693,7 +693,7 @@ BOOST_AUTO_TEST_CASE( MultiBoardCallbackInvoked )
 BOOST_AUTO_TEST_CASE( MultiBoardCallbackCancelThrows )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir()
-                           + "/io/sprint_layout/mmjoy2-74hc165.lay6";
+                           + "/plugins/sprint_layout/mmjoy2-74hc165.lay6";
 
     PCB_IO_SPRINT_LAYOUT plugin;
 
@@ -710,7 +710,7 @@ BOOST_AUTO_TEST_CASE( MultiBoardCallbackCancelThrows )
 BOOST_AUTO_TEST_CASE( SingleBoardFileSkipsCallback )
 {
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir()
-                           + "/io/sprint_layout/gpio2nesc.lay6";
+                           + "/plugins/sprint_layout/gpio2nesc.lay6";
 
     PCB_IO_SPRINT_LAYOUT plugin;
     bool                 callbackInvoked = false;
@@ -739,7 +739,7 @@ BOOST_AUTO_TEST_CASE( Pic12F629SmdPadPositions )
     // component-relative offsets rather than absolute positions, causing
     // all SMD pads to pile up near (0,0).
     std::string dataPath = KI_TEST::GetPcbnewTestDataDir()
-                           + "/io/sprint_layout/12F629_SM.lay6";
+                           + "/plugins/sprint_layout/12F629_SM.lay6";
 
     std::unique_ptr<BOARD> board = m_plugin.LoadBoard( dataPath );
 
